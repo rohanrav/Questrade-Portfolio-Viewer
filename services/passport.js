@@ -26,6 +26,7 @@ const strategy = new OAuth2Strategy(
     tokenURL: tokenURL,
     clientID: keys.REACT_APP_CLIENT_ID,
     callbackURL: redirectURL,
+    proxy: true,
   },
   async (accessToken, refreshToken, params, _, cb) => {
     try {
