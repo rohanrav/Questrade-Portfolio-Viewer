@@ -1,0 +1,58 @@
+body {
+  background-color: #272727 !important;
+  color: #fff;
+}
+
+.table-row-header {
+  font-weight: 600;
+  font-style: normal;
+  font-size: 13px;
+  color: #868997;
+  line-height: 18px;
+  padding-bottom: 4px;
+}
+
+.account-title {
+  font-weight: 700;
+  line-height: 24px;
+  font-size: 16px;
+}
+
+.accounts-table td {
+  padding: 25px 20px !important;
+}
+
+.account-asset-mix {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attached-segment-header {
+  color: #eaeaea !important;
+  background: #2e2e2e !important;
+  border: none !important;
+  /* border-bottom: 1px solid rgb(146 155 164 / 15%) !important; */
+}
+
+.attached-segment-content {
+  background: #272727 !important;
+  border: none !important;
+}
+
+.container {
+  width: 1250px !important;
+}
+
+.holdings-table {
+  cursor: pointer;
+}
+
+.holdings-table:hover {
+  font-weight: bold;
+}
+
+.ui.bottom.pointing.dropdown > .menu {
+  margin: 0;
+}

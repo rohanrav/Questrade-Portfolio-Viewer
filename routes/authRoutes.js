@@ -12,7 +12,7 @@ module.exports = (app) => {
     }
   );
 
-  app.get("/auth/login-error", (req, res) => {
+  app.get("/auth/questrade/login-error", (req, res) => {
     res
       .status(400)
       .json({ errorCode: errors.AUTH_ERROR, errorMsg: "Passport JS Error" });

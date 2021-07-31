@@ -33,11 +33,10 @@ require("./routes/questradeRoutes.js")(app);
 // - Write all methods to get info from questrade api
 // - Figure out the practice account, and use it here instead (make sure no errors from all types of assets)
 // - Figure out streaming from the backend
-// https://medium.com/@bantic/free-tls-with-letsencrypt-and-heroku-in-5-minutes-807361cca5d3
 
 const getAccessTokenFromRefreshToken = (req, cb) => {
   // Do work to get refresh token, and update mongo database and req.user
-  // If error, return error (redirect to login error + req.logOut()), then react application should redirect to error page
+  // If error, return error (redirect to login error + req.logout()), then react application should redirect to error page
 };
 
 app.listen(process.env.PORT || 5000);
