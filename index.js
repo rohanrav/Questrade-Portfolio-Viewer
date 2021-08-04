@@ -27,16 +27,22 @@ require("./routes/authRoutes.js")(app);
 require("./routes/questradeRoutes.js")(app);
 
 // TO DO:
-// - Watch all missed udemy videos
-// - Add mongo database and corresponding code to find user
-// - Write function to get accessToken from refreshToken and update the db and req.user
-// - Write all methods to get info from questrade api
-// - Figure out the practice account, and use it here instead (make sure no errors from all types of assets)
-// - Figure out streaming from the backend
+// - Watch all missed udemy videos ]
+// - Add mongo database and corresponding code to find user ]
+// - Write function to get accessToken from refreshToken and update the db and req.user ]
+// - Write all methods to get info from questrade api ]
+//   - finish doing the stock view (add info table + options table) ]
+// - Figure out the practice account, and use it here instead (make sure no errors from all types of assets) ]
 
-const getAccessTokenFromRefreshToken = (req, cb) => {
-  // Do work to get refresh token, and update mongo database and req.user
-  // If error, return error (redirect to login error + req.logout()), then react application should redirect to error page
-};
+//     - orders page --> real time streaming --> TODAY
+//     - add more appealing grid for info to stockview --> TODAY
+//        - add volumne data to stock view
+//        - add tooltip with mroe information
+//        - add +/- of current day of stock/option
+
+//   - add header (account selected/not selected, etc.)
+//   - add styling for home page, account error, etc.
+//   - add guards for accessing restrected pages without being locked in
+//   - add liability and use at your own discretion warnings
 
 app.listen(process.env.PORT || 5000);

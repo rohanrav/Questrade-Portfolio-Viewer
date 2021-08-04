@@ -1,13 +1,11 @@
 import { combineReducers } from "redux";
-import authReducer from "./authReducer";
 import accountsReducer from "./accountsReducer";
 import positionsReducer from "./positionsReducer";
 import exchangeRateReducer from "./exchangeRateReducer";
-import { USER_LOGOUT } from "../actions/types";
 import candlesReducer from "./candlesReducer";
+import { USER_LOGOUT } from "../actions/types";
 
 const appReducer = combineReducers({
-  auth: authReducer,
   accounts: accountsReducer,
   positions: positionsReducer,
   exchangeRate: exchangeRateReducer,

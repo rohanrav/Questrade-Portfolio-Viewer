@@ -1,17 +1,14 @@
 import React from "react";
 import { connect } from "react-redux";
-import { fetchAccountsAndBalances, signOut } from "../actions";
 import { Link } from "react-router-dom";
 
+import { fetchAccountsAndBalances, signOut } from "../actions";
 import AccountTableInfo from "./AccountTableInfo";
+import Loader from "./Loader";
 
 class Accounts extends React.Component {
   componentDidMount() {
-    if (!this.props.isSignedIn) {
-      this.props.history.push("/account-error");
-    } else {
-      this.props.fetchAccountsAndBalances(1);
-    }
+    this.props.fetchAccountsAndBalances();
   }
 
   roundNumber = (num) => Math.round(Number(num) * 100) / 100;
@@ -25,11 +22,7 @@ class Accounts extends React.Component {
             main={`${acc.type} (${acc.number})`}
             width="four"
           />
-          <AccountTableInfo
-            header="Cash"
-            main={`$${this.roundNumber(acc.cash)}`}
-            width="three"
-          />
+          <AccountTableInfo header="Cash" main={`$${this.roundNumber(acc.cash)}`} width="three" />
           <AccountTableInfo
             header="Market Value"
             main={`$${this.roundNumber(acc.marketValue)}`}
@@ -58,9 +51,13 @@ class Accounts extends React.Component {
     return (
       <>
         <h1 className="ui dividing inverted header">Investing Accounts</h1>
-        <table className="ui padded selectable inverted table">
-          <tbody>{this.renderAccounts()}</tbody>
-        </table>
+        {this.props.accounts.length === 0 ? (
+          <Loader height="100px" />
+        ) : (
+          <table className="ui padded selectable inverted table">
+            <tbody>{this.renderAccounts()}</tbody>
+          </table>
+        )}
         <button className="ui button red" onClick={() => this.props.signOut()}>
           Log Out
         </button>
@@ -72,10 +69,7 @@ class Accounts extends React.Component {
 const mapStateToProps = (state) => {
   return {
     accounts: Object.values(state.accounts),
-    isSignedIn: state.auth.isSignedIn,
   };
 };
 
-export default connect(mapStateToProps, { fetchAccountsAndBalances, signOut })(
-  Accounts
-);
+export default connect(mapStateToProps, { fetchAccountsAndBalances, signOut })(Accounts);

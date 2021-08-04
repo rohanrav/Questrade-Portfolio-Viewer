@@ -1,11 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { buttonTypes, tickCountMod } from "../charts/theme";
-import {
-  fetchCandles,
-  fetchSymbolInfoFromId,
-  fetchOptionsData,
-} from "../actions";
+import { fetchCandles, fetchSymbolInfoFromId, fetchOptionsData } from "../actions";
 import { Link } from "react-router-dom";
 import { ResponsiveLine } from "@nivo/line";
 import { area } from "d3-shape";
@@ -30,13 +26,9 @@ class StockDetail extends React.Component {
   }
 
   componentDidMount() {
-    if (!this.props.isSignedIn) {
-      this.props.history.push("/account-error");
-    } else {
-      this.chartButtonClick({ target: { name: "oneDay" } });
-      this.props.fetchSymbolInfoFromId(1, this.symbolId);
-      this.props.fetchOptionsData(1, this.symbolId);
-    }
+    this.chartButtonClick({ target: { name: "oneDay" } });
+    this.props.fetchSymbolInfoFromId(this.symbolId);
+    this.props.fetchOptionsData(this.symbolId);
   }
 
   componentDidUpdate() {
@@ -63,9 +55,7 @@ class StockDetail extends React.Component {
       case "oneDay":
         return this.formatAMPM(date);
       case "fiveDays":
-        return `${date.getMonth() + 1}/${date.getDate()} ${
-          dateStr ? dateStr : 12
-        }${am_pm}`;
+        return `${date.getMonth() + 1}/${date.getDate()} ${dateStr ? dateStr : 12}${am_pm}`;
       case "oneMonth":
         return `${date.getMonth() + 1}/${date.getDate()}`;
       default:
@@ -77,10 +67,8 @@ class StockDetail extends React.Component {
   }
 
   chartButtonClick = (e) => {
-    this.props.fetchCandles(1, this.symbolId, e.target.name);
-    Object.values(this.buttonRefs).forEach(
-      (btn) => (btn.current.className = "ui button")
-    );
+    this.props.fetchCandles(this.symbolId, e.target.name);
+    Object.values(this.buttonRefs).forEach((btn) => (btn.current.className = "ui button"));
     this.buttonRefs[e.target.name].current.className = "ui button active ";
     this.loader = true;
     this.currentButton = e.target.name;
@@ -106,17 +94,11 @@ class StockDetail extends React.Component {
           this.currentButton === "fiveDays" ||
           this.currentButton === "oneMonth"
         ) {
-          if (
-            date.getHours() < 9 ||
-            (date.getHours() === 9 && date.getMinutes() < 30)
-          ) {
+          if (date.getHours() < 9 || (date.getHours() === 9 && date.getMinutes() < 30)) {
             return;
           }
 
-          if (
-            date.getHours() > 16 ||
-            (date.getHours() === 16 && date.getMinutes() > 0)
-          ) {
+          if (date.getHours() > 16 || (date.getHours() === 16 && date.getMinutes() > 0)) {
             return;
           }
         }
@@ -133,10 +115,7 @@ class StockDetail extends React.Component {
     }
 
     if (chartData.data[0]) {
-      if (
-        chartData.data[0].price <
-        chartData.data[chartData.data.length - 1].price
-      ) {
+      if (chartData.data[0].price < chartData.data[chartData.data.length - 1].price) {
         this.lineColor = "#34a853";
         this.fillColor = "rgba(52, 168, 83, 0.2)";
       } else {
@@ -174,14 +153,8 @@ class StockDetail extends React.Component {
         }}
         yScale={{
           type: "linear",
-          min: data.data.reduce(
-            (prev, curr) => (prev.low < curr.low ? prev : curr),
-            0
-          ).low,
-          max: data.data.reduce(
-            (prev, curr) => (prev.high > curr.high ? prev : curr),
-            0
-          ).high,
+          min: data.data.reduce((prev, curr) => (prev.low < curr.low ? prev : curr), 0).low,
+          max: data.data.reduce((prev, curr) => (prev.high > curr.high ? prev : curr), 0).high,
           stacked: true,
           reverse: false,
         }}
@@ -192,10 +165,7 @@ class StockDetail extends React.Component {
           tickRotation: 0,
           format: (tick) => {
             this.tickCount++;
-            if (
-              this.tickCount % this.tickCountMod === 0 ||
-              this.tickCount === 1
-            ) {
+            if (this.tickCount % this.tickCountMod === 0 || this.tickCount === 1) {
               return this.formatDate(tick);
             }
             return "";
@@ -384,22 +354,26 @@ class StockDetail extends React.Component {
                   <td>{this.state.selected.label}</td>
                   <td>{res[0].chainPerRoot[0].optionRoot}</td>
                   <td>
-                    <Link
-                      to={`/trade/${opt.callSymbolId}`}
-                      className="ui green button"
+                    <a
+                      href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
+                      className="ui button"
+                      target="_blank"
+                      rel="noreferrer"
                       style={{ display: "block" }}
                     >
                       Trade Call Option
-                    </Link>
+                    </a>
                   </td>
                   <td>
-                    <Link
-                      to={`/trade/${opt.putSymbolId}`}
-                      className="ui green button"
+                    <a
+                      href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
+                      className="ui button"
+                      target="_blank"
+                      rel="noreferrer"
                       style={{ display: "block" }}
                     >
                       Trade Put Option
-                    </Link>
+                    </a>
                   </td>
                 </tr>
               );
@@ -417,29 +391,22 @@ class StockDetail extends React.Component {
         <h3 className="ui top attached header attached-segment-header">
           {this.props.symbolInfo ? this.props.symbolInfo.symbol : "Loading..."}
         </h3>
-        <div
-          className="ui attached segment"
-          style={{ border: "none", background: "#272727" }}
-        >
+        <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
           <div className="ui grid">
             <div className="row">
               <div className="ten wide column">
                 <div style={{ height: "500px" }}>{this.renderChart()}</div>
                 <div className="six ui buttons" style={{ marginTop: "10px" }}>
                   {Object.values(buttonTypes).map((btn) => {
-                    let classNames =
-                      btn === "1D" ? "ui button active" : "ui button";
-                    this.buttonRefs[this.getKeyByValue(buttonTypes, btn)] =
-                      React.createRef();
+                    let classNames = btn === "1D" ? "ui button active" : "ui button";
+                    this.buttonRefs[this.getKeyByValue(buttonTypes, btn)] = React.createRef();
                     return (
                       <button
                         key={btn}
                         onClick={this.chartButtonClick}
                         name={this.getKeyByValue(buttonTypes, btn)}
                         className={classNames}
-                        ref={
-                          this.buttonRefs[this.getKeyByValue(buttonTypes, btn)]
-                        }
+                        ref={this.buttonRefs[this.getKeyByValue(buttonTypes, btn)]}
                       >
                         {btn}
                       </button>
@@ -447,19 +414,23 @@ class StockDetail extends React.Component {
                   })}
                 </div>
                 <div className="two ui buttons" style={{ marginTop: "10px" }}>
-                  <Link
-                    to={`/trade/${this.symbolId}?type=buy`}
+                  <a
+                    href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
+                    target="_blank"
+                    rel="noreferrer"
                     className="ui button green"
                   >
                     Buy
-                  </Link>
+                  </a>
                   <div className="or"></div>
-                  <Link
-                    to={`/trade/${this.symbolId}?type=sell`}
+                  <a
+                    href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
+                    target="_blank"
+                    rel="noreferrer"
                     className="ui button red"
                   >
                     Sell
-                  </Link>
+                  </a>
                 </div>
               </div>
               <div className="six wide column">
@@ -468,10 +439,9 @@ class StockDetail extends React.Component {
                   <a
                     className="ui button"
                     style={{ display: "block" }}
-                    href={`https://finance.yahoo.com/quote/${
-                      this.props.symbolInfo ? this.props.symbolInfo.symbol : ""
-                    }`}
+                    href={`https://finance.yahoo.com/quote/${this.props.symbolInfo?.symbol}`}
                     target="_blank"
+                    rel="noreferrer"
                   >
                     More Info
                   </a>
@@ -480,18 +450,11 @@ class StockDetail extends React.Component {
             </div>
           </div>
         </div>
-        <h3 className="ui top attached header attached-segment-header">
-          Options
-        </h3>
-        <div
-          className="ui attached segment"
-          style={{ border: "none", background: "#272727" }}
-        >
+        <h3 className="ui top attached header attached-segment-header">Options</h3>
+        <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
           <div className="ui grid">
             <div className="row">
-              <div className="sixteen wide column">
-                {this.renderOptionsTable()}
-              </div>
+              <div className="sixteen wide column">{this.renderOptionsTable()}</div>
               <div className="sixteen wide column">{this.renderDropDown()}</div>
             </div>
           </div>
@@ -503,11 +466,8 @@ class StockDetail extends React.Component {
 
 const mapStateToProps = (state, ownProps) => {
   const { id } = ownProps.match.params;
-  if (!state.candles[id]) {
-    return { isSignedIn: state.auth.isSignedIn };
-  }
+  if (!state.candles[id]) return {};
   return {
-    isSignedIn: state.auth.isSignedIn,
     marketData: state.candles[id].marketData,
     symbolInfo: state.candles[id].symbolInfo,
     optionsData: state.candles[id].optionsData,
@@ -519,13 +479,3 @@ export default connect(mapStateToProps, {
   fetchSymbolInfoFromId,
   fetchOptionsData,
 })(StockDetail);
-
-//   to do:
-//   - finish doing the stock view (add info table + options table)
-//   - finish doing buying/selling page (draw mockups) - figure out real time data
-//     - confirm modal
-//     - orders page
-//   - add header (account selected/not selected, etc.)
-//   - add styling for home page, account error, etc.
-//   - add guards for accessing restrected pages without being locked in
-//   - add liability and use at your own discretion warnings

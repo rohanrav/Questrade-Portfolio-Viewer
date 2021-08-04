@@ -1,8 +1,8 @@
-import axios from "axios";
+const axios = require("axios");
 
-export default (serverURL, accessToken) =>
+module.exports = (serverURL, accessToken) =>
   axios.create({
-    baseURL: `${process.env.REACT_APP_PROXY_URL}/${serverURL}`,
+    baseURL: serverURL,
     headers: {
       "Access-Control-Allow-Origin": "*",
       Authorization: `Bearer ${accessToken}`,

@@ -12,14 +12,6 @@ export const buttonTypes = {
   fiveYears: "5Y",
 };
 
-export const questradeIntervalEnum = {
-  oneDay: "TenMinutes",
-  fiveDays: "FifteenMinutes",
-  oneMonth: "TwoHours",
-  oneYear: "OneDay",
-  fiveYears: "OneWeek",
-};
-
 export const tickCountMod = {
   oneDay: 15,
   fiveDays: 15,

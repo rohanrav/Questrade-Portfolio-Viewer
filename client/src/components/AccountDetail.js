@@ -1,10 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import {
-  fetchPositions,
-  fetchUSDToCADExchangeRate,
-  fetchAccountsAndBalances,
-} from "../actions";
+import { fetchPositions, fetchUSDToCADExchangeRate, fetchAccountsAndBalances } from "../actions";
 import Loader from "./Loader";
 import { ResponsivePie } from "@nivo/pie";
 import theme from "../charts/theme";
@@ -13,15 +9,7 @@ import _ from "lodash";
 class AccountDetail extends React.Component {
   constructor(props) {
     super(props);
-    this.assetTypesArr = [
-      "Stock",
-      "Option",
-      "Bond",
-      "Right",
-      "Gold",
-      "MutualFund",
-      "Index",
-    ];
+    this.assetTypesArr = ["Stock", "Option", "Bond", "Right", "Gold", "MutualFund", "Index"];
 
     this.assetTypesShortForm = {
       Stock: "STK",
@@ -35,14 +23,9 @@ class AccountDetail extends React.Component {
   }
 
   componentDidMount() {
-    if (!this.props.isSignedIn) {
-      this.props.history.push("/account-error");
-    } else {
-      console.log(this.props.match.params.accountNumber);
-      this.props.fetchAccountsAndBalances(1);
-      this.props.fetchPositions(1, this.props.match.params.accountNumber);
-      this.props.fetchUSDToCADExchangeRate();
-    }
+    this.props.fetchAccountsAndBalances();
+    this.props.fetchPositions(this.props.match.params.accountNumber);
+    this.props.fetchUSDToCADExchangeRate();
   }
 
   roundNumberTwoDecimals = (num) => Math.round(Number(num) * 100) / 100;
@@ -58,7 +41,7 @@ class AccountDetail extends React.Component {
   }
 
   getAssetAllocationData() {
-    if (!this.props.positions || !this.props.account) {
+    if (this.props.positions.length === 0 || !this.props.account) {
       return null;
     }
 
@@ -115,10 +98,7 @@ class AccountDetail extends React.Component {
 
     return (
       <div style={{ height: "400px", overflowY: "scroll", display: "block" }}>
-        <table
-          className="ui padded inverted selectable table"
-          style={{ height: "400px" }}
-        >
+        <table className="ui padded inverted selectable table" style={{ height: "400px" }}>
           <thead>
             <tr>
               <th>Investment type</th>
@@ -132,18 +112,8 @@ class AccountDetail extends React.Component {
               return (
                 <tr key={asset}>
                   <td>{asset}</td>
-                  <td>
-                    {this.roundNumberTwoDecimals(
-                      assetDetails.percentageOfTotal * 100
-                    )}
-                    %
-                  </td>
-                  <td>
-                    $
-                    {this.roundNumberTwoDecimals(
-                      assetDetails.currentMarketValue
-                    )}
-                  </td>
+                  <td>{this.roundNumberTwoDecimals(assetDetails.percentageOfTotal * 100)}%</td>
+                  <td>${this.roundNumberTwoDecimals(assetDetails.currentMarketValue)}</td>
                 </tr>
               );
             })}
@@ -224,7 +194,7 @@ class AccountDetail extends React.Component {
             match: {
               id: type,
             },
-            id: index % 2 == 0 ? "dots" : "lines",
+            id: index % 2 === 0 ? "dots" : "lines",
           };
         })}
         legends={[
@@ -253,8 +223,7 @@ class AccountDetail extends React.Component {
             }}
           >
             <strong style={{ color: "#fff" }}>
-              {datum.data.label}: $
-              {this.roundNumberTwoDecimals(datum.data.marketValue)}
+              {datum.data.label}: ${this.roundNumberTwoDecimals(datum.data.marketValue)}
             </strong>
           </div>
         )}
@@ -265,10 +234,7 @@ class AccountDetail extends React.Component {
   renderAccountHoldingsTable() {
     return (
       <div style={{ height: "500px", overflowY: "scroll", display: "block" }}>
-        <table
-          className="ui padded inverted selectable table"
-          style={{ height: "500px" }}
-        >
+        <table className="ui padded inverted selectable table" style={{ height: "500px" }}>
           <thead>
             <tr>
               <th>Symbol</th>
@@ -285,20 +251,14 @@ class AccountDetail extends React.Component {
             {this.props.positions.map((ele) => {
               let sym = "";
               if (ele.securityType === "Option") {
-                sym = this.createOptionsLabel(
-                  ele.optionExpiryDate,
-                  ele.optionRoot,
-                  ele.optionType
-                );
+                sym = this.createOptionsLabel(ele.optionExpiryDate, ele.optionRoot, ele.optionType);
               } else {
                 sym = ele.symbol;
               }
 
               return (
                 <tr
-                  onClick={() =>
-                    this.props.history.push(`/stock/${ele.symbolId}`)
-                  }
+                  onClick={() => this.props.history.push(`/stock/${ele.symbolId}`)}
                   className="holdings-table"
                   key={ele.symbolId}
                 >
@@ -307,9 +267,7 @@ class AccountDetail extends React.Component {
                   <td>{ele.currency}</td>
                   <td>{ele.openQuantity}</td>
                   <td>${this.roundNumberTwoDecimals(ele.currentPrice)}</td>
-                  <td>
-                    ${this.roundNumberTwoDecimals(ele.currentMarketValue)}
-                  </td>
+                  <td>${this.roundNumberTwoDecimals(ele.currentMarketValue)}</td>
                   <td>{ele.openPnl}</td>
                   <td>
                     {this.roundNumberTwoDecimals(
@@ -331,7 +289,6 @@ class AccountDetail extends React.Component {
   }
 
   renderAccountHoldingsChart() {
-    console.log(this.props.positions);
     const data = this.props.positions.map((ele) => {
       const adjustedMarketValue =
         ele.currency === "USD"
@@ -339,11 +296,7 @@ class AccountDetail extends React.Component {
           : ele.currentMarketValue;
       const label =
         ele.securityType === "Option"
-          ? this.createOptionsLabel(
-              ele.optionExpiryDate,
-              ele.optionRoot,
-              ele.optionType
-            )
+          ? this.createOptionsLabel(ele.optionExpiryDate, ele.optionRoot, ele.optionType)
           : ele.symbol;
       return {
         id: label,
@@ -404,8 +357,7 @@ class AccountDetail extends React.Component {
             }}
           >
             <strong style={{ color: "#fff" }}>
-              {datum.data.label}:
-              {` ${this.roundNumberOneDecimal(datum.data.value * 100)}%`}
+              {datum.data.label}:{` ${this.roundNumberOneDecimal(datum.data.value * 100)}%`}
             </strong>
           </div>
         )}
@@ -414,7 +366,7 @@ class AccountDetail extends React.Component {
   }
 
   render() {
-    if (!this.props.account) {
+    if (this.props.positions.length === 0 || !this.props.account) {
       return <Loader fullScreen />;
     }
 
@@ -423,33 +375,22 @@ class AccountDetail extends React.Component {
         <h1 className="ui dividing inverted header">
           {`${this.props.account.clientAccountType} ${this.props.account.type} (${this.props.account.number})`}
         </h1>
-        <h3 className="ui top attached header attached-segment-header">
-          Asset Allocation
-        </h3>
+        <h3 className="ui top attached header attached-segment-header">Asset Allocation</h3>
         <div className="ui attached segment attached-segment-content">
           <div className="ui grid">
             <div className="row account-asset-mix">
-              <div className="eight wide column">
-                {this.renderAssetAllocationTable()}
-              </div>
+              <div className="eight wide column">{this.renderAssetAllocationTable()}</div>
               <div className="eight wide column" style={{ maxHeight: "400px" }}>
                 {this.renderAssetAllocationChart()}
               </div>
             </div>
           </div>
         </div>
-        <h3 className="ui top attached header attached-segment-header">
-          Account Holdings
-        </h3>
-        <div
-          className="ui attached segment"
-          style={{ border: "none", background: "#272727" }}
-        >
+        <h3 className="ui top attached header attached-segment-header">Account Holdings</h3>
+        <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
           <div className="ui grid">
             <div className="row">
-              <div className="nine wide column">
-                {this.renderAccountHoldingsTable()}
-              </div>
+              <div className="nine wide column">{this.renderAccountHoldingsTable()}</div>
               <div className="seven wide column" style={{ height: "500px" }}>
                 {this.renderAccountHoldingsChart()}
               </div>
@@ -464,7 +405,6 @@ class AccountDetail extends React.Component {
 const mapStateToProps = (state, ownProps) => {
   const { accountNumber } = ownProps.match.params;
   return {
-    isSignedIn: state.auth.isSignedIn,
     positions: Object.values(state.positions[accountNumber] || {}),
     account: state.accounts[accountNumber],
     exchangeRate: state.exchangeRate,
