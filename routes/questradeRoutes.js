@@ -201,9 +201,40 @@ module.exports = (app) => {
         );
     }
   });
+
+  app.get("/api/orders/stream", async (req, res) => {
+    await testLogin(req, res);
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const streamPortURL = await getOrderStreamURL(req, api);
+      res.status(200).json({ success: true, questradePortURL: streamPortURL });
+    } catch (e) {
+      console.error(`Error retrieving orders streaming port data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving orders streaming port data from Questrade API: ${e.message}`
+          )
+        );
+    }
+  });
+
+  app.get("/api/orders/:accountNumber", async (req, res) => {});
 };
 
 // Helper Functions
+const getOrderStreamURL = async (req, api) => {
+  const ordersStreamPortRes = await api.get("v1/notifications", {
+    params: { stream: "true", mode: "WebSocket" },
+  });
+
+  return `wss:${req.user.apiServer.slice(6, -1)}:${
+    ordersStreamPortRes.data.streamPort
+  }/v1/notifications?stream=true&mode=WebSocket`;
+};
+
 const formatDateForCandles = (date, startDateOrEndDate, interval) => {
   if (startDateOrEndDate === qtradeConstants.formatCandleDate.START_DATE) {
     date = datefns.set(new Date(), { hours: 9, minutes: 30, seconds: 0 });
