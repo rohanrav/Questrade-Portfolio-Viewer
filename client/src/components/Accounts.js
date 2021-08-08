@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 
 import { fetchAccountsAndBalances, signOut } from "../actions";
 import AccountTableInfo from "./AccountTableInfo";
-import Loader from "./Loader";
+import RowPlaceholder from "./RowPlaceholder";
 
 class Accounts extends React.Component {
   componentDidMount() {
@@ -52,7 +52,9 @@ class Accounts extends React.Component {
       <>
         <h1 className="ui dividing inverted header">Investing Accounts</h1>
         {this.props.accounts.length === 0 ? (
-          <Loader height="100px" />
+          <div style={{ marginBottom: "10px" }}>
+            <RowPlaceholder height="100px" />
+          </div>
         ) : (
           <table className="ui padded selectable inverted table">
             <tbody>{this.renderAccounts()}</tbody>

@@ -2,8 +2,7 @@ const _ = require("lodash");
 const axios = require("axios");
 const mongoose = require("mongoose");
 const datefns = require("date-fns");
-const WebSocket = require("ws");
-const portastic = require("portastic");
+var CryptoJS = require("crypto-js");
 
 const qapi = require("../api/questradeAPI.js");
 const currencyConv = require("../api/currencyConverter.js");
@@ -202,12 +201,59 @@ module.exports = (app) => {
     }
   });
 
-  app.get("/api/orders/stream", async (req, res) => {
+  app.get("/api/executions/:accountNumber", async (req, res) => {
+    await testLogin(req, res);
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const executionsRes = await api.get(`v1/accounts/${req.params.accountNumber}/executions`);
+      res.status(200).json(executionsRes.data.executions);
+    } catch (e) {
+      console.error(`Error retrieving executions data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving executions data from Questrade API: ${e.message}`
+          )
+        );
+    }
+  });
+
+  app.get("/api/orders/:accountNumber", async (req, res) => {
+    await testLogin(req, res);
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const ordersRes = await api.get(`v1/accounts/${req.params.accountNumber}/orders`);
+      res.status(200).json(ordersRes.data.orders);
+    } catch (e) {
+      console.error(`Error retrieving orders data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving orders data from Questrade API: ${e.message}`
+          )
+        );
+    }
+  });
+
+  app.get("/api/stream/orders", async (req, res) => {
     await testLogin(req, res);
     const api = qapi(req.user.apiServer, req.user.accessToken);
     try {
       const streamPortURL = await getOrderStreamURL(req, api);
-      res.status(200).json({ success: true, questradePortURL: streamPortURL });
+      const dataToSend = {
+        success: true,
+        questradePortURL: streamPortURL,
+        eAT: req.user.accessToken,
+      };
+      const encObj = CryptoJS.AES.encrypt(
+        JSON.stringify(dataToSend),
+        keys.CRYPTO_SECRET_KEY
+      ).toString();
+      res.status(200).json(encObj);
     } catch (e) {
       console.error(`Error retrieving orders streaming port data from Questrade API: ${e.message}`);
       res
@@ -221,10 +267,50 @@ module.exports = (app) => {
     }
   });
 
-  app.get("/api/orders/:accountNumber", async (req, res) => {});
+  app.get("/api/stream/candle/:symbolId", async (req, res) => {
+    await testLogin(req, res);
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const canldePortURL = await getCandleStreamURL(req, api, req.params.symbolId);
+      const dataToSend = {
+        success: true,
+        questradePortURL: canldePortURL,
+        eAT: req.user.accessToken,
+      };
+
+      const encObj = CryptoJS.AES.encrypt(
+        JSON.stringify(dataToSend),
+        keys.CRYPTO_SECRET_KEY
+      ).toString();
+
+      res.status(200).json(encObj);
+    } catch (e) {
+      console.error(
+        `Error retrieving candles streaming port data from Questrade API: ${e.message}`
+      );
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving candles streaming port data from Questrade API: ${e.message}`
+          )
+        );
+    }
+  });
 };
 
 // Helper Functions
+const getCandleStreamURL = async (req, api, symbolId) => {
+  const candleStreamPortRes = await api.get(`v1/markets/quotes`, {
+    params: { ids: symbolId, stream: "true", mode: "WebSocket" },
+  });
+
+  return `wss:${req.user.apiServer.slice(6, -1)}:${
+    candleStreamPortRes.data.streamPort
+  }/v1/markets/quotes?ids=${symbolId}&stream=true&mode=WebSocket`;
+};
+
 const getOrderStreamURL = async (req, api) => {
   const ordersStreamPortRes = await api.get("v1/notifications", {
     params: { stream: "true", mode: "WebSocket" },

@@ -1,43 +1,73 @@
 import React from "react";
 import { connect } from "react-redux";
-import { buttonTypes, tickCountMod } from "../charts/theme";
+import { buttonTypes, tickCountModImport } from "../charts/theme";
 import { fetchCandles, fetchSymbolInfoFromId, fetchOptionsData } from "../actions";
-import { Link } from "react-router-dom";
 import { ResponsiveLine } from "@nivo/line";
 import { area } from "d3-shape";
 import { stockPriceChart } from "../charts/theme";
 import Loader from "./Loader";
 import Dropdown from "./Drowdown";
+import RowPlaceholder from "./RowPlaceholder";
 
-class StockDetail extends React.Component {
-  constructor(props) {
-    super(props);
-    this.symbolId = this.props.match.params.id;
-    this.buttonRefs = {};
-    this.loader = false;
-    this.currentButton = "oneDay";
-    this.tickCount = 0;
-    this.tickCountMod = tickCountMod[this.currentButton];
-    this.lineColor = "#fff";
-    this.fillColor = "rgba(255, 255, 255, 0.2)";
-    this.state = {
-      selected: { value: "", label: "Select an Options Expiry Date" },
+import { useState, useEffect } from "react";
+import axios from "axios";
+import keys from "../config/keys";
+import CryptoJS from "crypto-js";
+
+let currentButton = "oneDay";
+let tickCount = 0;
+let tickCountMod = tickCountModImport[currentButton];
+let lineColor = "#fff";
+let fillColor = "rgba(255, 255, 255, 0.2)";
+let buttonRefs = {};
+
+const StockDetail = (props) => {
+  const symbolId = props.match.params.id;
+  const [loader, setLoader] = useState(true);
+  const [selected, setSelected] = useState({ value: "", label: "Select an Options Expiry Date" });
+  const [stockPrice, setStockPrice] = useState(null);
+
+  useEffect(() => {
+    tickCountMod = tickCountModImport[currentButton];
+    tickCount = 0;
+  });
+
+  useEffect(() => {
+    if (props.symbolInfo?.prevDayClosePrice) {
+      setStockPrice(props.symbolInfo.prevDayClosePrice);
+    }
+  }, [props.symbolInfo]);
+
+  useEffect(() => {
+    setLoader(false);
+  }, [props.marketData]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoader(true);
+      chartButtonClick({ target: { name: "oneDay" } });
+      props.fetchSymbolInfoFromId(symbolId);
+      props.fetchOptionsData(symbolId);
+
+      const res = await axios.get(`/api/stream/candle/${symbolId}`);
+      const bytes = CryptoJS.AES.decrypt(res.data, keys.CRYPTO_SECRET_KEY);
+      const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      const ws = new WebSocket(decryptedData.questradePortURL);
+
+      ws.onopen = () => {
+        ws.send(decryptedData.eAT);
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (!data?.quotes) return;
+        setStockPrice(data.quotes[0].lastTradePrice);
+      };
     };
-  }
+    fetchData();
+  }, []);
 
-  componentDidMount() {
-    this.chartButtonClick({ target: { name: "oneDay" } });
-    this.props.fetchSymbolInfoFromId(this.symbolId);
-    this.props.fetchOptionsData(this.symbolId);
-  }
-
-  componentDidUpdate() {
-    this.loader = false;
-    this.tickCountMod = tickCountMod[this.currentButton];
-    this.tickCount = 0;
-  }
-
-  formatAMPM(date) {
+  const formatAMPM = (date) => {
     var hours = date.getHours();
     var minutes = date.getMinutes();
     var ampm = hours >= 12 ? "pm" : "am";
@@ -46,14 +76,14 @@ class StockDetail extends React.Component {
     minutes = minutes < 10 ? "0" + minutes : minutes;
     var strTime = hours + ":" + minutes + " " + ampm;
     return strTime;
-  }
+  };
 
-  formatDate(date) {
+  const formatDate = (date) => {
     const am_pm = date.getHours() > 12 ? "pm" : "am";
     const dateStr = date.getHours() % 12;
-    switch (this.currentButton) {
+    switch (currentButton) {
       case "oneDay":
-        return this.formatAMPM(date);
+        return formatAMPM(date);
       case "fiveDays":
         return `${date.getMonth() + 1}/${date.getDate()} ${dateStr ? dateStr : 12}${am_pm}`;
       case "oneMonth":
@@ -64,35 +94,36 @@ class StockDetail extends React.Component {
           .toString()
           .substring(2)}`;
     }
-  }
-
-  chartButtonClick = (e) => {
-    this.props.fetchCandles(this.symbolId, e.target.name);
-    Object.values(this.buttonRefs).forEach((btn) => (btn.current.className = "ui button"));
-    this.buttonRefs[e.target.name].current.className = "ui button active ";
-    this.loader = true;
-    this.currentButton = e.target.name;
-    this.forceUpdate();
   };
 
-  getKeyByValue(object, value) {
-    return Object.keys(object).find((key) => object[key] === value);
-  }
+  const chartButtonClick = (e) => {
+    props.fetchCandles(symbolId, e.target.name);
+    Object.values(buttonRefs).forEach((btn) => {
+      if (btn?.current?.className) {
+        btn.current.className = "ui button";
+      }
+    });
+    buttonRefs[e.target.name].current.className = "ui button active ";
+    currentButton = e.target.name;
+    setLoader(true);
+  };
 
-  prepChartData() {
+  const getKeyByValue = (object, value) => Object.keys(object).find((key) => object[key] === value);
+
+  const prepChartData = () => {
     let chartData = {
       id: "Stock Series",
       color: "",
       data: [],
     };
 
-    if (this.props.marketData) {
-      this.props.marketData.forEach((int) => {
+    if (props.marketData) {
+      props.marketData.forEach((int) => {
         const date = new Date(int.start);
         if (
-          this.currentButton === "oneDay" ||
-          this.currentButton === "fiveDays" ||
-          this.currentButton === "oneMonth"
+          currentButton === "oneDay" ||
+          currentButton === "fiveDays" ||
+          currentButton === "oneMonth"
         ) {
           if (date.getHours() < 9 || (date.getHours() === 9 && date.getMinutes() < 30)) {
             return;
@@ -116,33 +147,32 @@ class StockDetail extends React.Component {
 
     if (chartData.data[0]) {
       if (chartData.data[0].price < chartData.data[chartData.data.length - 1].price) {
-        this.lineColor = "#34a853";
-        this.fillColor = "rgba(52, 168, 83, 0.2)";
+        lineColor = "#34a853";
+        fillColor = "rgba(52, 168, 83, 0.2)";
       } else {
-        this.lineColor = "#ea4335";
-        this.fillColor = "rgba(234, 67, 52, 0.2)";
+        lineColor = "#ea4335";
+        fillColor = "rgba(234, 67, 52, 0.2)";
       }
     }
 
     return chartData;
-  }
+  };
 
-  renderChartAreaLayer = ({ points, xScale, yScale }) => {
+  const renderChartAreaLayer = ({ points, xScale, yScale }) => {
     const areaGenerator = area()
       .x((d) => xScale(d.data.x))
       .y0((d) => yScale(d.data.low))
       .y1((d) => yScale(d.data.high));
 
-    return <path d={areaGenerator(points)} fill={this.fillColor} />;
+    return <path d={areaGenerator(points)} fill={fillColor} />;
   };
 
-  renderChart = () => {
-    if (this.loader) {
+  const renderChart = () => {
+    if (loader) {
       return <Loader height="500px" />;
     }
 
-    const data = this.prepChartData();
-    console.log("DATA:", data);
+    const data = prepChartData();
     return (
       <ResponsiveLine
         data={[data]}
@@ -164,9 +194,9 @@ class StockDetail extends React.Component {
           tickPadding: 11,
           tickRotation: 0,
           format: (tick) => {
-            this.tickCount++;
-            if (this.tickCount % this.tickCountMod === 0 || this.tickCount === 1) {
-              return this.formatDate(tick);
+            tickCount++;
+            if (tickCount % tickCountMod === 0 || tickCount === 1) {
+              return formatDate(tick);
             }
             return "";
           },
@@ -180,7 +210,7 @@ class StockDetail extends React.Component {
           tickRotation: 0,
           format: (amount) => `$${amount}`,
         }}
-        colors={this.lineColor}
+        colors={lineColor}
         pointSize={6}
         pointColor={{ theme: "background" }}
         pointBorderWidth={2}
@@ -200,7 +230,7 @@ class StockDetail extends React.Component {
           </div>
         )}
         layers={[
-          this.renderChartAreaLayer,
+          renderChartAreaLayer,
           "grid",
           "markers",
           "axes",
@@ -216,11 +246,11 @@ class StockDetail extends React.Component {
     );
   };
 
-  renderStockDetailsTable() {
-    if (!this.props.symbolInfo) {
-      return "Loading...";
+  const renderStockDetailsTable = () => {
+    if (!props.symbolInfo || !stockPrice) {
+      return <RowPlaceholder rows={22} height="500px" />;
     }
-    const data = this.props.symbolInfo;
+    const data = props.symbolInfo;
 
     return (
       <div
@@ -239,7 +269,7 @@ class StockDetail extends React.Component {
           <tbody>
             <tr>
               <td>Price</td>
-              <td>${data.prevDayClosePrice}</td>
+              <td>${stockPrice}</td>
             </tr>
             <tr>
               <td>Currency</td>
@@ -285,10 +315,10 @@ class StockDetail extends React.Component {
         </table>
       </div>
     );
-  }
+  };
 
-  renderDropDown() {
-    if (!this.props.optionsData) {
+  const renderDropDown = () => {
+    if (!props.optionsData) {
       return (
         <Dropdown
           selected={{ value: "Loading...", label: "Loading..." }}
@@ -300,7 +330,7 @@ class StockDetail extends React.Component {
       );
     }
     let dropDownData = [];
-    this.props.optionsData.forEach((item) => {
+    props.optionsData.forEach((item) => {
       const d = new Date(item.expiryDate);
       dropDownData.push({
         label: d.toDateString(),
@@ -311,23 +341,23 @@ class StockDetail extends React.Component {
     return (
       <div style={{ marginTop: "10px" }}>
         <Dropdown
-          selected={this.state.selected}
-          onSelectedChange={(item) => this.setState({ selected: item })}
+          selected={selected}
+          onSelectedChange={(item) => setSelected(item)}
           options={dropDownData}
           label=""
         />
       </div>
     );
-  }
+  };
 
-  renderOptionsTable() {
-    if (!this.props.optionsData) {
+  const renderOptionsTable = () => {
+    if (!props.optionsData) {
       return null;
     }
 
-    const data = this.props.optionsData;
+    const data = props.optionsData;
     const res = data.filter((opt) => {
-      return new Date(opt.expiryDate).getTime() === this.state.selected.value;
+      return new Date(opt.expiryDate).getTime() === selected.value;
     });
 
     if (res.length === 0) {
@@ -351,11 +381,11 @@ class StockDetail extends React.Component {
               return (
                 <tr key={opt.callSymbolId}>
                   <td>${opt.strikePrice}</td>
-                  <td>{this.state.selected.label}</td>
+                  <td>{selected.label}</td>
                   <td>{res[0].chainPerRoot[0].optionRoot}</td>
                   <td>
                     <a
-                      href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
+                      href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
                       className="ui button"
                       target="_blank"
                       rel="noreferrer"
@@ -366,7 +396,7 @@ class StockDetail extends React.Component {
                   </td>
                   <td>
                     <a
-                      href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
+                      href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
                       className="ui button"
                       target="_blank"
                       rel="noreferrer"
@@ -382,87 +412,85 @@ class StockDetail extends React.Component {
         </table>
       </div>
     );
-  }
+  };
 
-  render() {
-    return (
-      <div>
-        <h1 className="ui dividing inverted header">Stock View</h1>
-        <h3 className="ui top attached header attached-segment-header">
-          {this.props.symbolInfo ? this.props.symbolInfo.symbol : "Loading..."}
-        </h3>
-        <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-          <div className="ui grid">
-            <div className="row">
-              <div className="ten wide column">
-                <div style={{ height: "500px" }}>{this.renderChart()}</div>
-                <div className="six ui buttons" style={{ marginTop: "10px" }}>
-                  {Object.values(buttonTypes).map((btn) => {
-                    let classNames = btn === "1D" ? "ui button active" : "ui button";
-                    this.buttonRefs[this.getKeyByValue(buttonTypes, btn)] = React.createRef();
-                    return (
-                      <button
-                        key={btn}
-                        onClick={this.chartButtonClick}
-                        name={this.getKeyByValue(buttonTypes, btn)}
-                        className={classNames}
-                        ref={this.buttonRefs[this.getKeyByValue(buttonTypes, btn)]}
-                      >
-                        {btn}
-                      </button>
-                    );
-                  })}
-                </div>
-                <div className="two ui buttons" style={{ marginTop: "10px" }}>
-                  <a
-                    href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ui button green"
-                  >
-                    Buy
-                  </a>
-                  <div className="or"></div>
-                  <a
-                    href={`https://my.questrade.com/trading/quote/${this.props.symbolInfo?.symbol}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="ui button red"
-                  >
-                    Sell
-                  </a>
-                </div>
+  return (
+    <div>
+      <h1 className="ui dividing inverted header">Stock View</h1>
+      <h3 className="ui top attached header attached-segment-header">
+        {props.symbolInfo ? props.symbolInfo.symbol : "Loading..."}
+      </h3>
+      <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
+        <div className="ui grid">
+          <div className="row">
+            <div className="ten wide column">
+              <div style={{ height: "500px" }}>{renderChart()}</div>
+              <div className="six ui buttons" style={{ marginTop: "10px" }}>
+                {Object.values(buttonTypes).map((btn) => {
+                  let classNames = btn === "1D" ? "ui button active" : "ui button";
+                  buttonRefs[getKeyByValue(buttonTypes, btn)] = React.createRef();
+                  return (
+                    <button
+                      key={btn}
+                      onClick={chartButtonClick}
+                      name={getKeyByValue(buttonTypes, btn)}
+                      className={classNames}
+                      ref={buttonRefs[getKeyByValue(buttonTypes, btn)]}
+                    >
+                      {btn}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="six wide column">
-                {this.renderStockDetailsTable()}
-                <div style={{ marginTop: "10px" }}>
-                  <a
-                    className="ui button"
-                    style={{ display: "block" }}
-                    href={`https://finance.yahoo.com/quote/${this.props.symbolInfo?.symbol}`}
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    More Info
-                  </a>
-                </div>
+              <div className="two ui buttons" style={{ marginTop: "10px" }}>
+                <a
+                  href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ui button green"
+                >
+                  Buy
+                </a>
+                <div className="or"></div>
+                <a
+                  href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="ui button red"
+                >
+                  Sell
+                </a>
               </div>
             </div>
-          </div>
-        </div>
-        <h3 className="ui top attached header attached-segment-header">Options</h3>
-        <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-          <div className="ui grid">
-            <div className="row">
-              <div className="sixteen wide column">{this.renderOptionsTable()}</div>
-              <div className="sixteen wide column">{this.renderDropDown()}</div>
+            <div className="six wide column">
+              {renderStockDetailsTable()}
+              <div style={{ marginTop: "10px" }}>
+                <a
+                  className="ui button"
+                  style={{ display: "block" }}
+                  href={`https://finance.yahoo.com/quote/${props.symbolInfo?.symbol}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  More Info
+                </a>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    );
-  }
-}
+      <h3 className="ui top attached header attached-segment-header">Options</h3>
+      <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
+        <div className="ui grid">
+          <div className="row">
+            <div className="sixteen wide column">{renderOptionsTable()}</div>
+            <div className="sixteen wide column">{renderDropDown()}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const mapStateToProps = (state, ownProps) => {
   const { id } = ownProps.match.params;

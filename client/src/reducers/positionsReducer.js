@@ -1,7 +1,7 @@
 import _ from "lodash";
 import { FETCH_POSITIONS } from "../actions/types";
 
-export default (state = {}, action) => {
+const positionsReducer = (state = {}, action) => {
   switch (action.type) {
     case FETCH_POSITIONS:
       return {
@@ -15,3 +15,5 @@ export default (state = {}, action) => {
       return state;
   }
 };
+
+export default positionsReducer;

@@ -6,6 +6,7 @@ const Dropdown = ({
   onSelectedChange,
   label,
   loading = false,
+  bottom = true,
 }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef();
@@ -32,11 +33,7 @@ const Dropdown = ({
     }
 
     return (
-      <div
-        key={item.value}
-        className="item"
-        onClick={() => onSelectedChange(item)}
-      >
+      <div key={item.value} className="item" onClick={() => onSelectedChange(item)}>
         {item.label}
       </div>
     );
@@ -48,15 +45,13 @@ const Dropdown = ({
         <label className="label">{label}</label>
         <div
           onClick={() => setOpen(!open)}
-          className={`ui selection dropdown bottom pointing ${
+          className={`ui selection dropdown ${bottom ? "bottom pointing" : ""} ${
             open ? "visible active" : ""
-          } ${loading ? "disabled" : ""}`}
+          } ${loading ? "disabled loading" : ""}`}
         >
           <i className="dropdown icon"></i>
-          <div className="text">{selected.label}</div>
-          <div className={`menu ${open ? "visible transition" : ""}`}>
-            {renderedOptions}
-          </div>
+          <div className="text">{selected?.label}</div>
+          <div className={`menu ${open ? "visible transition" : ""}`}>{renderedOptions}</div>
         </div>
       </div>
     </div>

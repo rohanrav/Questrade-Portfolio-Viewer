@@ -9,6 +9,8 @@ import {
   FETCH_SYMBOL_DATA,
   FETCH_OPTIONS_DATA,
   FETCH_SYMBOL_SEARCH,
+  FETCH_ORDERS,
+  FETCH_EXECUTIONS,
 } from "./types";
 import history from "../history";
 
@@ -127,6 +129,38 @@ export const fetchSymbolId = (symbol) => async (dispatch) => {
     });
   } catch (e) {
     console.error("Error fetching /api/symbol-serach from API: ", e);
+    dispatch(signOut());
+  }
+};
+
+export const fetchAccountOrders = (accountNumber) => async (dispatch) => {
+  try {
+    const res = await axios.get(`/api/orders/${accountNumber}`);
+    dispatch({
+      type: FETCH_ORDERS,
+      payload: {
+        data: res.data,
+        accountNumber,
+      },
+    });
+  } catch (e) {
+    console.error("Error fetching /api/orders/.../ from API: ", e);
+    dispatch(signOut());
+  }
+};
+
+export const fetchAccountExecutions = (accountNumber) => async (dispatch) => {
+  try {
+    const res = await axios.get(`/api/executions/${accountNumber}`);
+    dispatch({
+      type: FETCH_EXECUTIONS,
+      payload: {
+        data: res.data,
+        accountNumber,
+      },
+    });
+  } catch (e) {
+    console.error("Error fetching /api/executions/.../ from API: ", e);
     dispatch(signOut());
   }
 };

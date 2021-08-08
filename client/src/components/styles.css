@@ -56,3 +56,7 @@ body {
 .ui.bottom.pointing.dropdown > .menu {
   margin: 0;
 }
+
+.placeholder-bg {
+  background-color: #272727 !important;
+}

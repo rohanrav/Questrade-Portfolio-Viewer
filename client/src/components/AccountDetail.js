@@ -5,6 +5,7 @@ import Loader from "./Loader";
 import { ResponsivePie } from "@nivo/pie";
 import theme from "../charts/theme";
 import _ from "lodash";
+import RowPlaceholder from "./RowPlaceholder";
 
 class AccountDetail extends React.Component {
   constructor(props) {
@@ -85,7 +86,6 @@ class AccountDetail extends React.Component {
       currentMarketValue: this.props.account.cash,
       percentageOfTotal: this.props.account.cash / this.total,
     };
-    console.log(assetTypes);
 
     return assetTypes;
   }
@@ -93,7 +93,7 @@ class AccountDetail extends React.Component {
   renderAssetAllocationTable() {
     const data = this.getAssetAllocationData();
     if (!data) {
-      return <div>Loading...</div>;
+      return <RowPlaceholder height="400px" rows={16} />;
     }
 
     return (
@@ -138,6 +138,8 @@ class AccountDetail extends React.Component {
   prepChartData() {
     const chartData = [];
     const data = this.getAssetAllocationData();
+    if (!data) return null;
+
     const keys = Object.keys(data);
     keys.forEach((sec) => {
       chartData.push({
@@ -151,6 +153,11 @@ class AccountDetail extends React.Component {
   }
 
   renderAssetAllocationChart() {
+    const chartData = this.prepChartData();
+    if (!chartData) {
+      return <Loader height="400px" />;
+    }
+
     return (
       <ResponsivePie
         data={this.prepChartData()}
@@ -232,6 +239,10 @@ class AccountDetail extends React.Component {
   }
 
   renderAccountHoldingsTable() {
+    if (!this.props.positions || this.props.positions.length === 0) {
+      return <RowPlaceholder height="500px" rows={22} />;
+    }
+
     return (
       <div style={{ height: "500px", overflowY: "scroll", display: "block" }}>
         <table className="ui padded inverted selectable table" style={{ height: "500px" }}>
@@ -289,6 +300,10 @@ class AccountDetail extends React.Component {
   }
 
   renderAccountHoldingsChart() {
+    if (!this.props.positions || this.props.positions.length === 0) {
+      return <Loader height="500px" />;
+    }
+
     const data = this.props.positions.map((ele) => {
       const adjustedMarketValue =
         ele.currency === "USD"
@@ -365,16 +380,34 @@ class AccountDetail extends React.Component {
     );
   }
 
-  render() {
-    if (this.props.positions.length === 0 || !this.props.account) {
-      return <Loader fullScreen />;
+  renderHeader() {
+    if (!this.props.account || this.props.account.length === 0) {
+      return (
+        <div class="ui inverted segment">
+          <div class="ui active inverted placeholder">
+            <div class="header">
+              <div class="line"></div>
+            </div>
+          </div>
+        </div>
+      );
     }
 
     return (
+      <h1 className="ui dividing inverted header">
+        {`${this.props.account.clientAccountType} ${this.props.account.type} (${this.props.account.number})`}
+      </h1>
+    );
+  }
+
+  render() {
+    // if (this.props.positions.length === 0 || !this.props.account) {
+    //   return <Loader fullScreen />;
+    // }
+
+    return (
       <>
-        <h1 className="ui dividing inverted header">
-          {`${this.props.account.clientAccountType} ${this.props.account.type} (${this.props.account.number})`}
-        </h1>
+        {this.renderHeader()}
         <h3 className="ui top attached header attached-segment-header">Asset Allocation</h3>
         <div className="ui attached segment attached-segment-content">
           <div className="ui grid">

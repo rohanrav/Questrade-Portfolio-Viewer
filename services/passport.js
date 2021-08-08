@@ -1,6 +1,6 @@
 const passport = require("passport");
 const OAuth2Strategy = require("passport-oauth2").Strategy;
-const qapi = require("../questradeAPI.js");
+const qapi = require("../api/questradeAPI.js");
 const mongoose = require("mongoose");
 const addSeconds = require("date-fns/addSeconds");
 const keys = require("../config/keys.js");

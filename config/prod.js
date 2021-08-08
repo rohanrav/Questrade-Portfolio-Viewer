@@ -6,4 +6,5 @@ module.exports = {
   COOKIE_SECRET_KEY_2: process.env.COOKIE_SECRET_KEY_2,
   CURRENCY_API_KEY: process.env.CURRENCY_API_KEY,
   AUTH_URL_PREFIX: "https://login.questrade.com",
+  CRYPTO_SECRET_KEY: process.env.CRYPTO_SECRET_KEY,
 };
