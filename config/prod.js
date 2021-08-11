@@ -7,4 +7,5 @@ module.exports = {
   CURRENCY_API_KEY: process.env.CURRENCY_API_KEY,
   AUTH_URL_PREFIX: "https://login.questrade.com",
   CRYPTO_SECRET_KEY: process.env.CRYPTO_SECRET_KEY,
+  MONGO_TOKEN_STORE_ENCRYPTION: process.env.MONGO_TOKEN_STORE_ENCRYPTION,
 };

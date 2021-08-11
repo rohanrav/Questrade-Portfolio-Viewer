@@ -10,6 +10,8 @@ import _ from "lodash";
 import axios from "axios";
 import keys from "../config/keys";
 import CryptoJS from "crypto-js";
+import Header from "./Header";
+import Footer from "./Footer";
 
 const Orders = (props) => {
   const accountNumber = props.match.params.accountNumber;
@@ -250,26 +252,48 @@ const Orders = (props) => {
   };
 
   return (
-    <div>
-      <h1 className="ui dividing inverted header">Trades</h1>
-      {renderDropDown()}
-      <h3 className="ui top attached header attached-segment-header">Orders</h3>
-      <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-        <div className="ui grid">
-          <div className="row">
-            <div className="sixteen wide column">{renderAccountOrders()}</div>
+    <>
+      <section className="ui container">
+        <Header />
+        <div>
+          <h1 className="ui dividing inverted header page-header-text">Trades</h1>
+          {renderDropDown()}
+          <h3 className="ui top attached header attached-segment-header">Orders</h3>
+          <div
+            className="ui attached segment"
+            style={{
+              border: "none",
+              background: "#272727",
+              borderBottomLeftRadius: "5px",
+              borderBottomRightRadius: "5px",
+            }}
+          >
+            <div className="ui grid">
+              <div className="row">
+                <div className="sixteen wide column">{renderAccountOrders()}</div>
+              </div>
+            </div>
+          </div>
+          <h3 className="ui top attached header attached-segment-header">Executions</h3>
+          <div
+            className="ui attached segment"
+            style={{
+              border: "none",
+              background: "#272727",
+              borderBottomLeftRadius: "5px",
+              borderBottomRightRadius: "5px",
+            }}
+          >
+            <div className="ui grid">
+              <div className="row">
+                <div className="sixteen wide column">{renderAccountExecutions()}</div>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-      <h3 className="ui top attached header attached-segment-header">Executions</h3>
-      <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-        <div className="ui grid">
-          <div className="row">
-            <div className="sixteen wide column">{renderAccountExecutions()}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+      <Footer />
+    </>
   );
 };
 
@@ -289,21 +313,3 @@ export default connect(mapStateToProps, {
   fetchAccountOrders,
   fetchAccountsAndBalances,
 })(Orders);
-
-/**
- * TUrn into class based component
- * move socket stuff to componentDidMount
- * setup this component to work with redux,
- *      add in action creators to fetch orders and executions + reducers to add into redux store and work on frontend design
- * write code in backend to trigger the socket everytime an event is trggered from the
- *      questrade api socket, and write code in frontend to take that socket, and update the
- *      appropriate order/execution (if order has become execution, dleete it from order, vice versa)
- *      otherwise update the existing order/execution row, then finish this part
- * NEXT:
- *      work on stockview (adding more appealing info about the stock --> +/- in the day, grid boxes, etc.)
- *      volumne data, tooltip, 
- *      Work on header (account selected/not selected, etc.)
-//   - add styling for home page, account error, etc.
-//   - add guards for accessing restrected pages without being locked in
-//   - add liability and use at your own discretion warnings
-*/

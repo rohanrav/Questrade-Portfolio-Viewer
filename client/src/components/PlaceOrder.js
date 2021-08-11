@@ -7,7 +7,7 @@ const PlaceOrder = (props) => {
 
   return (
     <div>
-      <h1 className="ui dividing inverted header">Place Order</h1>
+      <h1 className="ui dividing inverted header page-header-text">Place Order</h1>
       <h3 className="ui top attached header attached-segment-header">Asset Details</h3>
       <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
         <div className="ui grid">

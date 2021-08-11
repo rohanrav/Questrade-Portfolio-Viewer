@@ -11,7 +11,8 @@ import "./styles.css";
 
 const App = () => {
   return (
-    <div className="ui container">
+    <>
+      <div className="header-marker"></div>
       <Router history={history}>
         <div>
           <Switch>
@@ -24,7 +25,7 @@ const App = () => {
           </Switch>
         </div>
       </Router>
-    </div>
+    </>
   );
 };
 

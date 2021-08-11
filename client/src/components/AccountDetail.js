@@ -6,12 +6,13 @@ import { ResponsivePie } from "@nivo/pie";
 import theme from "../charts/theme";
 import _ from "lodash";
 import RowPlaceholder from "./RowPlaceholder";
+import Header from "./Header";
+import Footer from "./Footer";
 
 class AccountDetail extends React.Component {
   constructor(props) {
     super(props);
     this.assetTypesArr = ["Stock", "Option", "Bond", "Right", "Gold", "MutualFund", "Index"];
-
     this.assetTypesShortForm = {
       Stock: "STK",
       Option: "OPT",
@@ -383,10 +384,10 @@ class AccountDetail extends React.Component {
   renderHeader() {
     if (!this.props.account || this.props.account.length === 0) {
       return (
-        <div class="ui inverted segment">
-          <div class="ui active inverted placeholder">
-            <div class="header">
-              <div class="line"></div>
+        <div className="ui inverted segment">
+          <div className="ui active inverted placeholder">
+            <div className="header">
+              <div className="line"></div>
             </div>
           </div>
         </div>
@@ -394,42 +395,42 @@ class AccountDetail extends React.Component {
     }
 
     return (
-      <h1 className="ui dividing inverted header">
+      <h1 className="ui dividing inverted header page-header-text">
         {`${this.props.account.clientAccountType} ${this.props.account.type} (${this.props.account.number})`}
       </h1>
     );
   }
 
   render() {
-    // if (this.props.positions.length === 0 || !this.props.account) {
-    //   return <Loader fullScreen />;
-    // }
-
     return (
       <>
-        {this.renderHeader()}
-        <h3 className="ui top attached header attached-segment-header">Asset Allocation</h3>
-        <div className="ui attached segment attached-segment-content">
-          <div className="ui grid">
-            <div className="row account-asset-mix">
-              <div className="eight wide column">{this.renderAssetAllocationTable()}</div>
-              <div className="eight wide column" style={{ maxHeight: "400px" }}>
-                {this.renderAssetAllocationChart()}
+        <section className="ui container">
+          <Header />
+          {this.renderHeader()}
+          <h3 className="ui top attached header attached-segment-header">Asset Allocation</h3>
+          <div className="ui attached segment attached-segment-content">
+            <div className="ui grid">
+              <div className="row account-asset-mix">
+                <div className="eight wide column">{this.renderAssetAllocationTable()}</div>
+                <div className="eight wide column" style={{ maxHeight: "400px" }}>
+                  {this.renderAssetAllocationChart()}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <h3 className="ui top attached header attached-segment-header">Account Holdings</h3>
-        <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-          <div className="ui grid">
-            <div className="row">
-              <div className="nine wide column">{this.renderAccountHoldingsTable()}</div>
-              <div className="seven wide column" style={{ height: "500px" }}>
-                {this.renderAccountHoldingsChart()}
+          <h3 className="ui top attached header attached-segment-header">Account Holdings</h3>
+          <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
+            <div className="ui grid">
+              <div className="row">
+                <div className="nine wide column">{this.renderAccountHoldingsTable()}</div>
+                <div className="seven wide column" style={{ height: "500px" }}>
+                  {this.renderAccountHoldingsChart()}
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+        <Footer />
       </>
     );
   }

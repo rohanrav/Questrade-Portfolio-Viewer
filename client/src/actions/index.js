@@ -14,19 +14,25 @@ import {
 } from "./types";
 import history from "../history";
 
-export const signOut = () => async (dispatch) => {
-  try {
-    await axios.get("/api/logout");
-    dispatch({
-      type: USER_LOGOUT,
-    });
+export const signOut =
+  (onError = true) =>
+  async (dispatch) => {
+    try {
+      await axios.get("/api/logout");
+      dispatch({
+        type: USER_LOGOUT,
+      });
 
-    history.push("/account-error");
-  } catch (e) {
-    console.error("Unable to sign out: ", e);
-    window.alert("Unable to log out, please try again!");
-  }
-};
+      if (onError) {
+        history.push("/account-error");
+      } else {
+        history.push("/");
+      }
+    } catch (e) {
+      console.error("Unable to sign out: ", e);
+      window.alert("Unable to log out, please try again!");
+    }
+  };
 
 export const fetchUSDToCADExchangeRate = () => async (dispatch) => {
   try {
@@ -115,20 +121,6 @@ export const fetchOptionsData = (symbolId) => async (dispatch) => {
     });
   } catch (e) {
     console.error("Error fetching /api/option/.../ from API: ", e);
-    dispatch(signOut());
-  }
-};
-
-// PUT THIS DIRECTLY IN THE COMPENENT - DONT USE REDUX FOR THIS
-export const fetchSymbolId = (symbol) => async (dispatch) => {
-  try {
-    const res = await axios.get(`/api/symbol-search`, { params: { s: symbol } });
-    dispatch({
-      type: FETCH_SYMBOL_SEARCH,
-      payload: res.data,
-    });
-  } catch (e) {
-    console.error("Error fetching /api/symbol-serach from API: ", e);
     dispatch(signOut());
   }
 };

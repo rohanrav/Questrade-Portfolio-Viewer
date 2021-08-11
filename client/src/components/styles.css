@@ -1,6 +1,15 @@
 body {
-  background-color: #272727 !important;
+  background-color: rgb(24, 24, 24) !important;
+  background-image: url("../config/background.svg") !important;
   color: #fff;
+  position: relative;
+  background-size: 15%;
+  background-position: -3px -3px;
+  height: 100%;
+}
+
+.ui.green.button {
+  background-color: #328636 !important;
 }
 
 .table-row-header {
@@ -33,12 +42,14 @@ body {
   color: #eaeaea !important;
   background: #2e2e2e !important;
   border: none !important;
-  /* border-bottom: 1px solid rgb(146 155 164 / 15%) !important; */
+  margin-top: 20px !important;
 }
 
 .attached-segment-content {
   background: #272727 !important;
   border: none !important;
+  border-bottom-left-radius: 5px !important;
+  border-bottom-right-radius: 5px !important;
 }
 
 .container {
@@ -59,4 +70,80 @@ body {
 
 .placeholder-bg {
   background-color: #272727 !important;
+}
+
+.header-list {
+  background-color: #fff !important;
+  padding: 12px 16px !important;
+  width: 200.39px !important;
+}
+
+.header-list:hover {
+  background-color: #ededed !important;
+}
+
+.ui.dividing.header {
+  border: none !important;
+}
+
+.page-header-text {
+  margin-top: 15px !important;
+  margin-bottom: -8px !important;
+}
+
+.page-menu {
+  background-color: rgba(255, 255, 255, 0) !important;
+  border-radius: 5px !important;
+  padding: 7.5px 0 10px 0 !important;
+}
+
+.footer-menu {
+  text-align: center;
+  color: rgb(233, 233, 233);
+  padding-bottom: 17.5px;
+  padding-right: 35px;
+  padding-left: 35px;
+}
+
+.header-marker {
+  position: absolute;
+  padding: 60.5px 0 0 0;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  z-index: -1;
+}
+
+a.item.menu-logo {
+  margin-left: 0px !important;
+  margin-right: 10px !important;
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  font-size: 17px !important;
+  text-decoration: underline #328636 !important;
+  font-weight: 600 !important;
+}
+
+a.item.menu-logo:hover {
+  background-color: rgba(255, 255, 255, 0) !important;
+}
+
+.btn-log-out {
+  background-color: #ea4335 !important;
+  margin-left: 0px !important;
+}
+
+.btn-log-out:hover {
+  transition: background 0.1s ease, color 0.1s ease, -webkit-box-shadow 0.1s ease !important;
+  background-color: rgba(234, 67, 53, 0.7) !important;
+}
+
+.jumbotron {
+  margin: 0 !important;
+  padding: 80px 36px 80px 36px !important;
+  background-color: #272727 !important;
+  color: #eaeaea !important;
+}
+
+section {
+  padding-bottom: 5rem;
 }

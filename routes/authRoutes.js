@@ -16,7 +16,6 @@ module.exports = (app) => {
     "/auth/questrade/callback",
     passport.authenticate("oauth2", { failureRedirect: "/auth/login-error" }),
     (req, res) => {
-      console.log(req.user);
       res.redirect("/accounts");
     }
   );

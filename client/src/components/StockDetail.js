@@ -1,5 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
+import { Link } from "react-router-dom";
 import { buttonTypes, tickCountModImport } from "../charts/theme";
 import { fetchCandles, fetchSymbolInfoFromId, fetchOptionsData } from "../actions";
 import { ResponsiveLine } from "@nivo/line";
@@ -8,21 +9,23 @@ import { stockPriceChart } from "../charts/theme";
 import Loader from "./Loader";
 import Dropdown from "./Drowdown";
 import RowPlaceholder from "./RowPlaceholder";
+import { parseISO } from "date-fns";
 
 import { useState, useEffect } from "react";
 import axios from "axios";
 import keys from "../config/keys";
 import CryptoJS from "crypto-js";
+import Header from "./Header";
+import Footer from "./Footer";
 
 let currentButton = "oneDay";
 let tickCount = 0;
 let tickCountMod = tickCountModImport[currentButton];
 let lineColor = "#fff";
 let fillColor = "rgba(255, 255, 255, 0.2)";
-let buttonRefs = {};
 
 const StockDetail = (props) => {
-  const symbolId = props.match.params.id;
+  const buttonRefs = {};
   const [loader, setLoader] = useState(true);
   const [selected, setSelected] = useState({ value: "", label: "Select an Options Expiry Date" });
   const [stockPrice, setStockPrice] = useState(null);
@@ -36,23 +39,24 @@ const StockDetail = (props) => {
     if (props.symbolInfo?.prevDayClosePrice) {
       setStockPrice(props.symbolInfo.prevDayClosePrice);
     }
-  }, [props.symbolInfo]);
+  }, [props.symbolInfo, props.match.params.id]);
 
   useEffect(() => {
     setLoader(false);
-  }, [props.marketData]);
+  }, [props.marketData, props.match.params.id]);
 
   useEffect(() => {
+    let ws = null;
     const fetchData = async () => {
       setLoader(true);
       chartButtonClick({ target: { name: "oneDay" } });
-      props.fetchSymbolInfoFromId(symbolId);
-      props.fetchOptionsData(symbolId);
+      props.fetchSymbolInfoFromId(props.match.params.id);
+      props.fetchOptionsData(props.match.params.id);
 
-      const res = await axios.get(`/api/stream/candle/${symbolId}`);
+      const res = await axios.get(`/api/stream/candle/${props.match.params.id}`);
       const bytes = CryptoJS.AES.decrypt(res.data, keys.CRYPTO_SECRET_KEY);
       const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-      const ws = new WebSocket(decryptedData.questradePortURL);
+      ws = new WebSocket(decryptedData.questradePortURL);
 
       ws.onopen = () => {
         ws.send(decryptedData.eAT);
@@ -60,12 +64,70 @@ const StockDetail = (props) => {
 
       ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        if (!data?.quotes) return;
+        if (!data?.quotes) {
+          console.log(`Questrade WebSocket Message: ${JSON.stringify(data)}`);
+          return;
+        }
         setStockPrice(data.quotes[0].lastTradePrice);
       };
+
+      process.on("exit", () => {
+        if (ws) {
+          console.log("Closing WebSocket on 'exit' event");
+          ws.close();
+        }
+        process.exit();
+      });
+
+      process.on("SIGINT", () => {
+        if (ws) {
+          console.log("Closing WebSocket on 'SIGINT' event");
+          ws.close();
+        }
+        process.exit();
+      });
+
+      process.on("uncaughtException", () => {
+        if (ws) {
+          console.log("Closing WebSocket on 'uncaughtException' event");
+          ws.close();
+        }
+      });
     };
     fetchData();
-  }, []);
+
+    return () => {
+      if (ws) ws.close();
+      currentButton = "oneDay";
+      tickCount = 0;
+      tickCountMod = tickCountModImport[currentButton];
+      lineColor = "#fff";
+      fillColor = "rgba(255, 255, 255, 0.2)";
+    };
+  }, [props.match.params.id]);
+
+  const createOptionsLabel = (dateString, optionRoot, optionType, optionStrikePrice) => {
+    const date = parseISO(dateString);
+    const exp = `${date.getMonth() + 1}/${date.getDate()}/${date
+      .getFullYear()
+      .toString()
+      .substring(2)}`;
+    return `${optionRoot} ${Number(optionStrikePrice).toFixed(2)} ${optionType} (Expiring: ${exp})`;
+  };
+
+  const getEntityTitle = (data) => {
+    if (!data) return "Loading...";
+    if (data.securityType === "Option") {
+      return createOptionsLabel(
+        data.optionExpiryDate,
+        data.optionRoot,
+        data.optionType,
+        data.optionStrikePrice
+      );
+    } else {
+      return data.symbol;
+    }
+  };
 
   const formatAMPM = (date) => {
     var hours = date.getHours();
@@ -97,7 +159,7 @@ const StockDetail = (props) => {
   };
 
   const chartButtonClick = (e) => {
-    props.fetchCandles(symbolId, e.target.name);
+    props.fetchCandles(props.match.params.id, e.target.name);
     Object.values(buttonRefs).forEach((btn) => {
       if (btn?.current?.className) {
         btn.current.className = "ui button";
@@ -164,7 +226,7 @@ const StockDetail = (props) => {
       .y0((d) => yScale(d.data.low))
       .y1((d) => yScale(d.data.high));
 
-    return <path d={areaGenerator(points)} fill={fillColor} />;
+    return <path d={areaGenerator(points) || []} fill={fillColor} />;
   };
 
   const renderChart = () => {
@@ -211,7 +273,7 @@ const StockDetail = (props) => {
           format: (amount) => `$${amount}`,
         }}
         colors={lineColor}
-        pointSize={6}
+        pointSize={4}
         pointColor={{ theme: "background" }}
         pointBorderWidth={2}
         pointBorderColor={{ from: "serieColor" }}
@@ -250,8 +312,8 @@ const StockDetail = (props) => {
     if (!props.symbolInfo || !stockPrice) {
       return <RowPlaceholder rows={22} height="500px" />;
     }
-    const data = props.symbolInfo;
 
+    const data = props.symbolInfo;
     return (
       <div
         style={{
@@ -263,7 +325,7 @@ const StockDetail = (props) => {
         <table className="ui celled inverted selectable table">
           <thead>
             <tr>
-              <th colSpan="2">{data.symbol}</th>
+              <th colSpan="2">{getEntityTitle(data)}</th>
             </tr>
           </thead>
           <tbody>
@@ -271,21 +333,39 @@ const StockDetail = (props) => {
               <td>Price</td>
               <td>${stockPrice}</td>
             </tr>
+            {data.securityType === "Option" ? (
+              <tr>
+                <td>Strike Price</td>
+                <td>${Number(data.optionStrikePrice).toFixed(2)}</td>
+              </tr>
+            ) : null}
+            {data.securityType === "Option" ? (
+              <tr>
+                <td>Option Type</td>
+                <td>{data.optionType}</td>
+              </tr>
+            ) : null}
             <tr>
               <td>Currency</td>
               <td>{data.currency}</td>
             </tr>
+            {data.securityType === "Option" ? (
+              <tr>
+                <td>Expiry Date</td>
+                <td>{parseISO(data.optionExpiryDate).toDateString()}</td>
+              </tr>
+            ) : null}
             <tr>
               <td>EPS</td>
-              <td>${data.eps}</td>
+              <td>{data.eps ? `$${data.eps}` : `--`}</td>
             </tr>
             <tr>
               <td>P/E Ratio</td>
-              <td>{data.pe}</td>
+              <td>{data.pe ? `${data.pe}` : `--`}</td>
             </tr>
             <tr>
               <td>Dividend Yield</td>
-              <td>{data.yield}%</td>
+              <td>{data.yield ? `${data.yield}%` : `--`}</td>
             </tr>
             <tr>
               <td>Average Vol 3 M</td>
@@ -297,11 +377,11 @@ const StockDetail = (props) => {
             </tr>
             <tr>
               <td>High (52 W)</td>
-              <td>${data.highPrice52}</td>
+              <td>{data.highPrice52 ? `$${data.highPrice52}` : `--`}</td>
             </tr>
             <tr>
               <td>Low (52 W)</td>
-              <td>${data.lowPrice52}</td>
+              <td>{data.lowPrice52 ? `$${data.lowPrice52}` : `--`}</td>
             </tr>
             <tr>
               <td>Security Type</td>
@@ -384,26 +464,22 @@ const StockDetail = (props) => {
                   <td>{selected.label}</td>
                   <td>{res[0].chainPerRoot[0].optionRoot}</td>
                   <td>
-                    <a
-                      href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
-                      className="ui button"
-                      target="_blank"
-                      rel="noreferrer"
+                    <Link
+                      to={`/stock/${opt.callSymbolId}`}
+                      className="ui green button"
                       style={{ display: "block" }}
                     >
                       Trade Call Option
-                    </a>
+                    </Link>
                   </td>
                   <td>
-                    <a
-                      href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
-                      className="ui button"
-                      target="_blank"
-                      rel="noreferrer"
+                    <Link
+                      to={`/stock/${opt.putSymbolId}`}
+                      className="ui green button"
                       style={{ display: "block" }}
                     >
                       Trade Put Option
-                    </a>
+                    </Link>
                   </td>
                 </tr>
               );
@@ -415,80 +491,107 @@ const StockDetail = (props) => {
   };
 
   return (
-    <div>
-      <h1 className="ui dividing inverted header">Stock View</h1>
-      <h3 className="ui top attached header attached-segment-header">
-        {props.symbolInfo ? props.symbolInfo.symbol : "Loading..."}
-      </h3>
-      <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-        <div className="ui grid">
-          <div className="row">
-            <div className="ten wide column">
-              <div style={{ height: "500px" }}>{renderChart()}</div>
-              <div className="six ui buttons" style={{ marginTop: "10px" }}>
-                {Object.values(buttonTypes).map((btn) => {
-                  let classNames = btn === "1D" ? "ui button active" : "ui button";
-                  buttonRefs[getKeyByValue(buttonTypes, btn)] = React.createRef();
-                  return (
-                    <button
-                      key={btn}
-                      onClick={chartButtonClick}
-                      name={getKeyByValue(buttonTypes, btn)}
-                      className={classNames}
-                      ref={buttonRefs[getKeyByValue(buttonTypes, btn)]}
+    <>
+      <section className="ui container">
+        <Header />
+        <div>
+          <h1
+            className="ui dividing inverted header page-header-text"
+            style={{ marginTop: "24px" }}
+          >
+            Stock View
+          </h1>
+          <h3 className="ui top attached header attached-segment-header">
+            {getEntityTitle(props.symbolInfo)}
+          </h3>
+          <div
+            className="ui attached segment"
+            style={{
+              border: "none",
+              background: "#272727",
+              borderBottomLeftRadius: "5px",
+              borderBottomRightRadius: "5px",
+            }}
+          >
+            <div className="ui grid">
+              <div className="row">
+                <div className="ten wide column">
+                  <div style={{ height: "500px" }}>{renderChart()}</div>
+                  <div className="six ui buttons" style={{ marginTop: "10px" }}>
+                    {Object.values(buttonTypes).map((btn) => {
+                      let classNames = btn === "1D" ? "ui button active" : "ui button";
+                      buttonRefs[getKeyByValue(buttonTypes, btn)] = React.createRef();
+                      return (
+                        <button
+                          key={btn}
+                          onClick={chartButtonClick}
+                          name={getKeyByValue(buttonTypes, btn)}
+                          className={classNames}
+                          ref={buttonRefs[getKeyByValue(buttonTypes, btn)]}
+                        >
+                          {btn}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="two ui buttons" style={{ marginTop: "10px" }}>
+                    <a
+                      href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ui button green"
                     >
-                      {btn}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="two ui buttons" style={{ marginTop: "10px" }}>
-                <a
-                  href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="ui button green"
-                >
-                  Buy
-                </a>
-                <div className="or"></div>
-                <a
-                  href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="ui button red"
-                >
-                  Sell
-                </a>
+                      Buy
+                    </a>
+                    <div className="or"></div>
+                    <a
+                      href={`https://my.questrade.com/trading/quote/${props.symbolInfo?.symbol}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="ui button red"
+                    >
+                      Sell
+                    </a>
+                  </div>
+                </div>
+                <div className="six wide column">
+                  {renderStockDetailsTable()}
+                  <div style={{ marginTop: "10px" }}>
+                    <a
+                      className="ui button"
+                      style={{ display: "block" }}
+                      href={`https://finance.yahoo.com/quote/${props.symbolInfo?.symbol}`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      More Info
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
-            <div className="six wide column">
-              {renderStockDetailsTable()}
-              <div style={{ marginTop: "10px" }}>
-                <a
-                  className="ui button"
-                  style={{ display: "block" }}
-                  href={`https://finance.yahoo.com/quote/${props.symbolInfo?.symbol}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  More Info
-                </a>
+          </div>
+          <h3 className="ui top attached header attached-segment-header">Options</h3>
+          <div
+            className="ui attached segment"
+            style={{
+              border: "none",
+              background: "#272727",
+              borderBottomLeftRadius: "5px",
+              borderBottomRightRadius: "5px",
+            }}
+          >
+            <div className="ui grid">
+              <div className="row">
+                <div className="sixteen wide column">{renderOptionsTable()}</div>
+                <div className="sixteen wide column">{renderDropDown()}</div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <h3 className="ui top attached header attached-segment-header">Options</h3>
-      <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-        <div className="ui grid">
-          <div className="row">
-            <div className="sixteen wide column">{renderOptionsTable()}</div>
-            <div className="sixteen wide column">{renderDropDown()}</div>
-          </div>
-        </div>
-      </div>
-    </div>
+      </section>
+      <Footer />
+    </>
   );
 };
 
