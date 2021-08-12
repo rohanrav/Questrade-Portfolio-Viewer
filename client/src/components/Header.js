@@ -88,7 +88,7 @@ const Header = ({ signOut, fetchAccountsAndBalances, accounts, isLoggedIn }) => 
 
   const renderedResults = () => {
     const filteredResults = results.filter((res) => res.isTradable && res.isQuotable);
-    return filteredResults.map((item) => (
+    return filteredResults.slice(0, 6).map((item) => (
       <Link
         key={item.symbolId}
         className="item header-list"
