@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "server": "nodemon index.js",
+    "start": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "node index.js",
+    "server_dev": "nodemon index.js",
     "client": "npm run start --prefix client",
-    "dev": "concurrently \"npm run server\" \"npm run client\""
+    "dev": "concurrently \"npm run server_dev\" \"npm run client\""
   },
   "engines": {
     "node": "14.15.3",
