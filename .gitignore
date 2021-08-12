@@ -1,5 +1,5 @@
 node_modules
 dev.js
-client/src/config/dev.js
+client/.env
 client/.DS_Store
 client/public/.DS_Store
