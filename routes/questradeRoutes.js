@@ -443,9 +443,6 @@ const testLogin = async (req, res) => {
     return Promise.resolve(true);
   } catch (e) {
     console.error(`Test Login Error: ${e}`);
-    res
-      .status(400)
-      .json(new errors.apiErrorMessage(errors.AUTH_ERROR, `Authentication Error: ${e.message}`));
     return Promise.reject(e);
   }
 };
