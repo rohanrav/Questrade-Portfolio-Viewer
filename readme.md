@@ -28,7 +28,7 @@ This project was built using React + Redux on the frontend and Node + MongoDB + 
 
 #### Account Details Page
 
-![](https://github.com/rohanrav/questrade_portfolio_view/blob/main/screenshots/AccountDetail.png)
+![](https://github.com/rohanrav/questrade_portfolio_view/blob/main/screenshots/AccountDetailPage.png)
 
 #### Stock Detail Page
 
