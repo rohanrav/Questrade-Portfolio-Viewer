@@ -180,7 +180,7 @@ const Header = ({ signOut, fetchAccountsAndBalances, accounts, isLoggedIn }) => 
           )}
         </div>
         {mobileWidth && (
-          <Grid padded className="mobile only">
+          <Grid padded className={`mobile only`}>
             <Menu borderless fluid inverted fixed="top" size="huge">
               <Menu.Item header onClick={() => history.push("/")}>
                 Questrade Portfolio Viewer

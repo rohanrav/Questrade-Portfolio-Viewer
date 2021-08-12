@@ -5,6 +5,15 @@ import "./css/login.css";
 const Login = () => {
   return (
     <>
+      <style>
+        {
+          "\
+    .ui.padded.grid.mobile.only {\
+        margin-bottom: 3.5rem !important;\
+      }\
+    "
+        }
+      </style>
       <div className="ui container">
         <Header isLoggedIn={false} />
       </div>
