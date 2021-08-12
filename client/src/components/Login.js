@@ -9,7 +9,7 @@ const Login = () => {
         {
           "\
     .ui.padded.grid.mobile.only {\
-        margin-bottom: 3.5rem !important;\
+        margin-bottom: 2.5rem !important;\
       }\
     "
         }
