@@ -253,8 +253,8 @@ module.exports = (app) => {
     const api = qapi(req.user.apiServer, req.user.accessToken);
     try {
       const streamPortURL = await getOrderStreamURL(req, api);
-      if (streamPortURL.error) {
-        throw new Error(streamPortURL.e.message);
+      if (typeof streamPortURL !== "string") {
+        throw new Error(streamPortURL);
       }
 
       const dataToSend = {
@@ -284,8 +284,8 @@ module.exports = (app) => {
     const api = qapi(req.user.apiServer, req.user.accessToken);
     try {
       const canldePortURL = await getCandleStreamURL(req, api, req.params.symbolId);
-      if (canldePortURL.error) {
-        throw new Error(canldePortURL.e.message);
+      if (typeof canldePortURL !== "string") {
+        throw new Error(canldePortURL);
       }
 
       const dataToSend = {
