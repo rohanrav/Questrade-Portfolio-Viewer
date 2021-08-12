@@ -8,7 +8,6 @@ import AccountTableInfo from "./AccountTableInfo";
 import { parseISO, formatDistance } from "date-fns";
 import _ from "lodash";
 import axios from "axios";
-import keys from "../config/keys";
 import CryptoJS from "crypto-js";
 import Header from "./Header";
 import Footer from "./Footer";
@@ -31,7 +30,7 @@ const Orders = (props) => {
 
       try {
         const res = await axios.get(`/api/stream/orders`);
-        const bytes = CryptoJS.AES.decrypt(res.data, keys.CRYPTO_SECRET_KEY);
+        const bytes = CryptoJS.AES.decrypt(res.data, process.env.REACT_APP_CRYPTO_SECRET_KEY);
         const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
         const ws = new WebSocket(decryptedData.questradePortURL);
 
