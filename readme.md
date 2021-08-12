@@ -6,6 +6,20 @@ If you are a Questrade Client and want to give the project a try visit the link 
 
 If you tried out the project and liked it or have some feedback for me feel free shoot me an email here: [Email Rohan Ravindran](mailto:r8ravind@uwaterloo.ca?subject=Questrade%20Portfolio%20Viewer)
 
+## How it was built
+
+This project was built using React + Redux on the frontend, and Node + MongoDB + Express on the backend.
+
+- Used the OAuth2 Standard for user authentication. Implemented custom express middleware to preemptively fetch new access tokens upon expiry
+- For security purposes AES Encryption, Passport.js, and Cookie-Session were used to maintain a user's session securely
+- Used MongoDB along with Mongoose to store user data
+- Utilized a client side proxy along with Axios to forward appropriate requests between the frontend and backend
+- Redux + Redux Thunk were used when writing action creators and reducers to fetch data from the backend and update the client side Redux Store
+- Utilized the Nivo Rocks graphing library to create interactive graphs
+- Utilized a mix of both functional and class based components along with component hooks and lifecycle methods
+- Utilized Web Sockets on the client side to fetch real-time pricing and orders data
+- Used Semantic-UI along with custom CSS and CSS Media Queries to style the site and create responsive behaviour
+
 ## Screenshots
 
 #### Accounts Page
@@ -23,19 +37,3 @@ If you tried out the project and liked it or have some feedback for me feel free
 #### Orders Page
 
 !()[]
-
-## How it was built
-
-This project was built using the MERN stack.
-
-- React + Redux, MongoDB (Mongoose) + Node + Express
-- AES Encryption + Passport.js & cookie session
-- Axios for external requests
-- Used OAuth 2 Standard for Authentication, maintain refresh token + access token, preemptively fetch access token from refresh token
-- Used Semantic UI
-- Setup Proxy between node server and react server
-- Used Redux + Redux Thunk to fetch data from backend and store in global state (wrote action creators + reducers)
-- Utilized Nivo Rocks to create interactive graphs
-- Utilized functional and class based components with component lifecycle methods and hooks (refs, etc.)
-- Utilized web sockets to fetch real time stock and orders data
-- Used Semantic UI along with custom CSS, and media queries to style the site and create responsive behaviour
