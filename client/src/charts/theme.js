@@ -1,7 +1,9 @@
-export default {
+const chartStyle = {
   textColor: "#e6e6e6",
   fontSize: 13,
 };
+
+export default chartStyle;
 
 export const buttonTypes = {
   oneDay: "1D",
@@ -12,15 +14,7 @@ export const buttonTypes = {
   fiveYears: "5Y",
 };
 
-export const questradeIntervalEnum = {
-  oneDay: "TenMinutes",
-  fiveDays: "FifteenMinutes",
-  oneMonth: "TwoHours",
-  oneYear: "OneDay",
-  fiveYears: "OneWeek",
-};
-
-export const tickCountMod = {
+export const tickCountModImport = {
   oneDay: 15,
   fiveDays: 15,
   oneMonth: 10,

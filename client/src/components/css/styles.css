@@ -1,0 +1,231 @@
+body {
+  background-color: rgb(24, 24, 24) !important;
+  background-image: url("../../config/background.svg") !important;
+  color: #fff;
+  position: relative;
+  background-size: 15%;
+  background-position: -3px -3px;
+  height: 100%;
+}
+
+.ui.green.button {
+  background-color: #328636 !important;
+}
+
+.table-row-header {
+  font-weight: 600;
+  font-style: normal;
+  font-size: 13px;
+  color: #868997;
+  line-height: 18px;
+  padding-bottom: 4px;
+}
+
+.account-title {
+  font-weight: 700;
+  line-height: 24px;
+  font-size: 16px;
+}
+
+.accounts-table td {
+  padding: 25px 20px !important;
+}
+
+.account-asset-mix {
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.attached-segment-header {
+  color: #eaeaea !important;
+  background: #2e2e2e !important;
+  border: none !important;
+  margin-top: 20px !important;
+}
+
+.attached-segment-content {
+  background: #272727 !important;
+  border: none !important;
+  border-bottom-left-radius: 5px !important;
+  border-bottom-right-radius: 5px !important;
+}
+
+.container {
+  width: 1250px !important;
+}
+
+.holdings-table {
+  cursor: pointer;
+}
+
+.holdings-table:hover {
+  font-weight: bold;
+}
+
+.ui.bottom.pointing.dropdown > .menu {
+  margin: 0;
+}
+
+.placeholder-bg {
+  background-color: #272727 !important;
+}
+
+.header-list {
+  background-color: #fff !important;
+  padding: 12px 16px !important;
+  width: 200.39px !important;
+}
+
+.header-list:hover {
+  background-color: #ededed !important;
+}
+
+.ui.dividing.header {
+  border: none !important;
+}
+
+.page-header-text {
+  margin-top: 15px !important;
+  margin-bottom: -8px !important;
+}
+
+.page-menu {
+  background-color: rgba(255, 255, 255, 0) !important;
+  border-radius: 5px !important;
+  padding: 7.5px 0 10px 0 !important;
+}
+
+.footer-menu {
+  text-align: center;
+  color: rgb(233, 233, 233);
+  padding-bottom: 17.5px;
+  padding-right: 35px;
+  padding-left: 35px;
+}
+
+.header-marker {
+  position: absolute;
+  padding: 60.5px 0 0 0;
+  width: 100%;
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  z-index: -1;
+}
+
+a.item.menu-logo {
+  margin-left: 0px !important;
+  margin-right: 10px !important;
+  padding-left: 5px !important;
+  padding-right: 5px !important;
+  font-size: 17px !important;
+  text-decoration: underline #328636 !important;
+  font-weight: 600 !important;
+}
+
+a.item.menu-logo:hover {
+  background-color: rgba(255, 255, 255, 0) !important;
+}
+
+.btn-log-out {
+  background-color: #ea4335 !important;
+  margin-left: 0px !important;
+}
+
+.btn-log-out:hover {
+  transition: background 0.1s ease, color 0.1s ease, -webkit-box-shadow 0.1s ease !important;
+  background-color: rgba(234, 67, 53, 0.7) !important;
+}
+
+.jumbotron {
+  margin: 0 !important;
+  padding: 80px 36px 80px 36px !important;
+  background-color: #272727 !important;
+  color: #eaeaea !important;
+}
+
+section {
+  padding-bottom: 5rem;
+}
+
+.ui.form .inline.fields {
+  margin-bottom: 0;
+}
+
+.ui.message {
+  background-color: #eeeeee;
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 4rem;
+  padding-top: 6rem;
+  padding-bottom: 4rem;
+}
+
+.ui.menu > .ui.container > .header.item {
+  font-size: 1.4rem;
+  margin-left: -20px;
+}
+
+.ui.borderless.menu {
+  box-shadow: none;
+  flex-wrap: wrap;
+  border: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.ui.mobile.only.grid .ui.menu .ui.vertical.menu {
+  display: none;
+}
+
+.btn-mobile > * {
+  width: 100% !important;
+}
+
+.asset-chart {
+  max-height: 400px !important;
+}
+
+.positions-chart {
+  height: 500px;
+}
+
+.options-dropdown {
+  margin-top: 10px !important;
+  width: 100% !important;
+  border: #484848 solid 0.5px;
+  border-collapse: collapse;
+}
+
+.options-dropdown td {
+  padding: 7.5px 5px 7.5px 5px !important;
+  border: #484848 solid 0.5px;
+  background-color: #333;
+}
+
+.options-dropdown-head th {
+  padding: 15px 5px 15px 5px !important;
+  border: #484848 solid 0.5px;
+}
+
+.options-dropdown-head {
+  text-align: justify !important;
+  background-color: rgba(43, 43, 43, 1) !important;
+}
+
+.message-query {
+  padding-top: 21px !important;
+  padding-bottom: 21px !important;
+}
+
+.posistions-head {
+  height: 500px !important;
+}
+
+.ui.secondary.inverted.menu.page-menu {
+  margin-bottom: 1.5rem;
+}
+
+.ui.padded.grid.mobile.only {
+  margin-bottom: 5.5rem !important;
+}

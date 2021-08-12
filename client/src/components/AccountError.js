@@ -1,51 +1,70 @@
 import React from "react";
-import { connect } from "react-redux";
-import { signOut, fetchAccessTokenWithRefreshToken } from "../actions";
 import { Link } from "react-router-dom";
-import Loader from "./Loader";
-import Cookies from "universal-cookie";
+import Header from "./Header";
+import "./css/login.css";
 
-class AccountError extends React.Component {
-  constructor(props) {
-    super(props);
-    this.refreshTokenAvailable = false;
-    const cookies = new Cookies();
-    if (cookies.get("refresh_token")) {
-      this.refreshTokenAvailable = true;
-      this.props.fetchAccessTokenWithRefreshToken(
-        () => {
-          this.props.history.goBack();
-          return {
-            type: "LOGIN_REFRESH_TOKEN",
-          };
-        },
-        [],
-        1
-      );
-    }
-  }
-
-  render() {
-    if (this.refreshTokenAvailable) {
-      return <Loader loaderText="Loading account information..." fullScreen />;
-    }
-
-    return (
-      <div>
-        <h2>Account Error: Please Sign In Again</h2>
-        <Link className="ui button green" to="/">
-          Home
-        </Link>
+const AccountError = () => {
+  return (
+    <>
+      <style>
+        {
+          "\
+    .ui.padded.grid.mobile.only {\
+        margin-bottom: 2.5rem !important;\
+      }\
+    "
+        }
+      </style>
+      <div className="ui container">
+        <Header isLoggedIn={false} />
       </div>
-    );
-  }
-}
-
-const mapStateToProps = (state) => {
-  return {};
+      <div className="ui inverted vertical center aligned segment">
+        <div className="ui content container">
+          <h1 className="ui inverted header">
+            Uh oh! There's been an <strong style={{ color: "#ea4335" }}>error!</strong>
+          </h1>
+          <p>
+            An error has occured on Questrade's end. Please log in again to resolve the error and{" "}
+            <a
+              style={{ cursor: "pointer", color: "#fff" }}
+              href="mailto:r8ravind@uwaterloo.ca?subject=Questrade%20Portfolio%20Viewer%20Bug%2FInquiry"
+              target="_blank"
+              rel="noreferrer"
+            >
+              contact us
+            </a>{" "}
+            if the error persists.
+          </p>
+          <Link to="/" className="btn-log-in ui huge button">
+            Home
+          </Link>
+        </div>
+        <footer
+          className="ui inverted vertical segment"
+          style={{ position: "fixed", bottom: "0", left: "0", right: "0" }}
+        >
+          <a
+            style={{ cursor: "pointer" }}
+            href="https://github.com/rohanrav/questrade_portfolio_view"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <i className="github icon"></i>
+            {"Questrade Portfolio Viewer"}
+          </a>
+          {" | "}Made by{" "}
+          <a
+            style={{ cursor: "pointer" }}
+            href="https://www.linkedin.com/in/rohanrav/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Rohan Ravindran
+          </a>
+        </footer>
+      </div>
+    </>
+  );
 };
 
-export default connect(mapStateToProps, {
-  signOut,
-  fetchAccessTokenWithRefreshToken,
-})(AccountError);
+export default AccountError;

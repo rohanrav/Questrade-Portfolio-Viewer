@@ -1,10 +1,6 @@
-import {
-  FETCH_CANDLES,
-  FETCH_SYMBOL_DATA,
-  FETCH_OPTIONS_DATA,
-} from "../actions/types";
+import { FETCH_CANDLES, FETCH_SYMBOL_DATA, FETCH_OPTIONS_DATA } from "../actions/types";
 
-export default (state = {}, action) => {
+const candlesReducer = (state = {}, action) => {
   switch (action.type) {
     case FETCH_CANDLES:
       return {
@@ -34,3 +30,5 @@ export default (state = {}, action) => {
       return state;
   }
 };
+
+export default candlesReducer;

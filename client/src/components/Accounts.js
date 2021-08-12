@@ -1,23 +1,22 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { connect } from "react-redux";
-import { fetchAccountsAndBalances, signOut } from "../actions";
 import { Link } from "react-router-dom";
 
+import { fetchAccountsAndBalances, signOut } from "../actions";
 import AccountTableInfo from "./AccountTableInfo";
+import RowPlaceholder from "./RowPlaceholder";
+import Header from "./Header";
+import Footer from "./Footer";
 
-class Accounts extends React.Component {
-  componentDidMount() {
-    if (!this.props.isSignedIn) {
-      this.props.history.push("/account-error");
-    } else {
-      this.props.fetchAccountsAndBalances(1);
-    }
-  }
+const Accounts = ({ fetchAccountsAndBalances, accounts, signOut }) => {
+  useEffect(() => {
+    fetchAccountsAndBalances();
+  }, [fetchAccountsAndBalances]);
 
-  roundNumber = (num) => Math.round(Number(num) * 100) / 100;
+  const roundNumber = (num) => Math.round(Number(num) * 100) / 100;
 
-  renderAccounts = () => {
-    return this.props.accounts.map((acc) => {
+  const renderAccounts = () => {
+    return accounts.map((acc) => {
       return (
         <tr className="accounts-table" key={acc.number}>
           <AccountTableInfo
@@ -25,19 +24,15 @@ class Accounts extends React.Component {
             main={`${acc.type} (${acc.number})`}
             width="four"
           />
-          <AccountTableInfo
-            header="Cash"
-            main={`$${this.roundNumber(acc.cash)}`}
-            width="three"
-          />
+          <AccountTableInfo header="Cash" main={`$${roundNumber(acc.cash)}`} width="three" />
           <AccountTableInfo
             header="Market Value"
-            main={`$${this.roundNumber(acc.marketValue)}`}
+            main={`$${roundNumber(acc.marketValue)}`}
             width="three"
           />
           <AccountTableInfo
             header="Total Equity"
-            main={`$${this.roundNumber(acc.totalEquity)}`}
+            main={`$${roundNumber(acc.totalEquity)}`}
             width="three"
           />
           <td className="four wide">
@@ -54,28 +49,32 @@ class Accounts extends React.Component {
     });
   };
 
-  render() {
-    return (
-      <>
-        <h1 className="ui dividing inverted header">Investing Accounts</h1>
-        <table className="ui padded selectable inverted table">
-          <tbody>{this.renderAccounts()}</tbody>
-        </table>
-        <button className="ui button red" onClick={() => this.props.signOut()}>
-          Log Out
-        </button>
-      </>
-    );
-  }
-}
+  return (
+    <>
+      <section className="ui container">
+        <div id="content-body">
+          <Header />
+          <h1 className="ui dividing inverted header page-header-text">Accounts</h1>
+          {accounts.length === 0 ? (
+            <div style={{ marginBottom: "10px", marginTop: "15px" }}>
+              <RowPlaceholder height="100px" />
+            </div>
+          ) : (
+            <table className="ui padded selectable inverted table">
+              <tbody>{renderAccounts()}</tbody>
+            </table>
+          )}
+        </div>
+      </section>
+      <Footer />
+    </>
+  );
+};
 
 const mapStateToProps = (state) => {
   return {
     accounts: Object.values(state.accounts),
-    isSignedIn: state.auth.isSignedIn,
   };
 };
 
-export default connect(mapStateToProps, { fetchAccountsAndBalances, signOut })(
-  Accounts
-);
+export default connect(mapStateToProps, { fetchAccountsAndBalances, signOut })(Accounts);

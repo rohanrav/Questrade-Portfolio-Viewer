@@ -1,8 +1,9 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import Header from "./Header";
 import "./css/login.css";
 
-const Login = () => {
+const PageNotFound = () => {
   return (
     <>
       <style>
@@ -19,15 +20,13 @@ const Login = () => {
       </div>
       <div className="ui inverted vertical center aligned segment">
         <div className="ui content container">
-          <h1 className="ui inverted header">Questrade Portfolio Viewer</h1>
-          <p>
-            Manage all your Questrade accounts with ease! Get easily understadable graphs, options
-            data, and real-time pricing information to make managing your portfolio as easy as
-            possible.
-          </p>
-          <a href="/auth/questrade/login" className="btn-log-in ui green huge button">
-            Log In With Questrade
-          </a>
+          <h1 className="ui inverted header">
+            <strong style={{ color: "#ea4335" }}>404</strong> Page Not Found!
+          </h1>
+          <p>This web page does not exist! This is not the page you are looking for :)</p>
+          <Link to="/" className="btn-log-in ui huge button">
+            Home
+          </Link>
         </div>
         <footer
           className="ui inverted vertical segment"
@@ -57,4 +56,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default PageNotFound;
