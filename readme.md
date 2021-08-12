@@ -1,16 +1,16 @@
 # Questrade Portfolio Viewer
 
-This project is an investing account portfolio viewer for Questrade clients. This project allows users to understand the contents of their portfolios, use interactive graphs, get options pricing data, and manage accounts orders easily.
+This project is an account portfolio viewer for Questrade clients. This project allows users to understand the contents of their portfolios, use interactive graphs, get real-time stock + options pricing data, and manage account orders easily.
 
 If you are a Questrade Client and want to give the project a try visit the link here: [Questrade Portfolio Viewer](https://questrade-portfolio-view.herokuapp.com/)
 
-If you tried out the project and liked it or have some feedback for me feel free shoot me an email here: [Email Rohan Ravindran](mailto:r8ravind@uwaterloo.ca?subject=Questrade%20Portfolio%20Viewer)
+If you tried out the project and liked it or have some feedback feel free shoot me an email here: [Email Rohan Ravindran](mailto:r8ravind@uwaterloo.ca?subject=Questrade%20Portfolio%20Viewer)
 
 ## How it was built
 
-This project was built using React + Redux on the frontend, and Node + MongoDB + Express on the backend.
+This project was built using React + Redux on the frontend and Node + MongoDB + Express on the backend.
 
-- Used the OAuth2 Standard for user authentication. Implemented custom express middleware to preemptively fetch new access tokens upon expiry
+- Used the OAuth2 Standard for user authentication. Implemented custom Express middleware to preemptively fetch new access tokens upon expiry
 - For security purposes AES Encryption, Passport.js, and Cookie-Session were used to maintain a user's session securely
 - Used MongoDB along with Mongoose to store user data
 - Utilized a client side proxy along with Axios to forward appropriate requests between the frontend and backend
