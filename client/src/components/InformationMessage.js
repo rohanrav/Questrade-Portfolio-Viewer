@@ -1,16 +1,16 @@
 import React from "react";
 
-const InformationMessage = (props) => {
+const InformationMessage = ({ className, header, subheader }) => {
   return (
-    <div className="ui inverted message">
-      <div className="header">{props.header}</div>
-      <p>{props.subheader}</p>
+    <div className={`ui inverted message ${className}`}>
+      <div className="header">{header}</div>
+      <p>{subheader}</p>
     </div>
   );
 };
 
 InformationMessage.defaultProps = {
-  title: "Message",
+  header: "Message",
   subheader: "Placeholder text for message",
 };
 

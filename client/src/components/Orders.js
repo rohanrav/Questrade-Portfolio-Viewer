@@ -114,6 +114,7 @@ const Orders = (props) => {
         <InformationMessage
           header="No Orders"
           subheader={`There are no active orders for this account`}
+          className="message-query"
         />
       );
     }
@@ -170,6 +171,7 @@ const Orders = (props) => {
         <InformationMessage
           header="No Executions"
           subheader={`There are no active executions for this account`}
+          className="message-query"
         />
       );
     }

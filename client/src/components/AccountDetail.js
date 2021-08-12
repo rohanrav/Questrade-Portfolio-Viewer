@@ -99,7 +99,10 @@ class AccountDetail extends React.Component {
 
     return (
       <div style={{ height: "400px", overflowY: "scroll", display: "block" }}>
-        <table className="ui padded inverted selectable table" style={{ height: "400px" }}>
+        <table
+          className="ui padded inverted selectable table asset-table"
+          style={{ height: "400px" }}
+        >
           <thead>
             <tr>
               <th>Investment type</th>
@@ -245,8 +248,8 @@ class AccountDetail extends React.Component {
     }
 
     return (
-      <div style={{ height: "500px", overflowY: "scroll", display: "block" }}>
-        <table className="ui padded inverted selectable table" style={{ height: "500px" }}>
+      <div style={{ maxHeight: "500px", overflowY: "scroll", display: "block" }}>
+        <table className="ui padded inverted selectable table posistions-head">
           <thead>
             <tr>
               <th>Symbol</th>
@@ -409,10 +412,10 @@ class AccountDetail extends React.Component {
           {this.renderHeader()}
           <h3 className="ui top attached header attached-segment-header">Asset Allocation</h3>
           <div className="ui attached segment attached-segment-content">
-            <div className="ui grid">
+            <div className="ui stackable two column grid">
               <div className="row account-asset-mix">
                 <div className="eight wide column">{this.renderAssetAllocationTable()}</div>
-                <div className="eight wide column" style={{ maxHeight: "400px" }}>
+                <div className="eight wide column asset-chart">
                   {this.renderAssetAllocationChart()}
                 </div>
               </div>
@@ -420,10 +423,10 @@ class AccountDetail extends React.Component {
           </div>
           <h3 className="ui top attached header attached-segment-header">Account Holdings</h3>
           <div className="ui attached segment" style={{ border: "none", background: "#272727" }}>
-            <div className="ui grid">
+            <div className="ui stackable two column grid">
               <div className="row">
                 <div className="nine wide column">{this.renderAccountHoldingsTable()}</div>
-                <div className="seven wide column" style={{ height: "500px" }}>
+                <div className="seven wide column positions-chart">
                   {this.renderAccountHoldingsChart()}
                 </div>
               </div>

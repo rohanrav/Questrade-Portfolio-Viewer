@@ -8,7 +8,6 @@ import {
   FETCH_CANDLES,
   FETCH_SYMBOL_DATA,
   FETCH_OPTIONS_DATA,
-  FETCH_SYMBOL_SEARCH,
   FETCH_ORDERS,
   FETCH_EXECUTIONS,
 } from "./types";
@@ -30,7 +29,6 @@ export const signOut =
       }
     } catch (e) {
       console.error("Unable to sign out: ", e);
-      window.alert("Unable to log out, please try again!");
     }
   };
 

@@ -12,7 +12,26 @@ const qtradeConstants = require("../constants/questrade.js");
 
 const User = mongoose.model("users");
 
+let _refreshExecuted = false;
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.log(`Axios Error: ${error.message}`);
+    throw error;
+  }
+);
+
 module.exports = (app) => {
+  app.use((req, res, next) => {
+    testLogin(req, res)
+      .then(() => next())
+      .catch((e) => {
+        console.error(`testLogin Server Error: ${e}`);
+        next();
+      });
+  });
+
   app.get("/api/exchange-rate", async (req, res) => {
     try {
       const rateRes = await currencyConv.get("api/v7/convert", {
@@ -33,8 +52,7 @@ module.exports = (app) => {
   });
 
   app.get("/api/current-user", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
+    if (req.user) {
       res.status(200).send(req.user);
     } else {
       res.status(401).send(new errors.apiErrorMessage(errors.AUTH_ERROR, "User not logged in"));
@@ -42,309 +60,291 @@ module.exports = (app) => {
   });
 
   app.get("/api/accounts-and-balances", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const accountsRes = await api.get("v1/accounts");
-        const accounts = accountsRes.data.accounts;
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const accountsRes = await api.get("v1/accounts");
+      const accounts = accountsRes.data.accounts;
 
-        const balancesPromises = accounts.map((acc) =>
-          api.get(`v1/accounts/${acc.number}/balances`)
-        );
+      const balancesPromises = accounts.map((acc) => api.get(`v1/accounts/${acc.number}/balances`));
 
-        Promise.all(balancesPromises).then((balancesRes) => {
-          const balances = balancesRes.map((acc) => {
-            return {
-              ..._.omit(acc.data.combinedBalances[0], [
-                "buyingPower",
-                "maintenanceExcess",
-                "isRealTime",
-              ]),
-              cashUSD: acc.data.combinedBalances[1].cash,
-              marketValueUSD: acc.data.combinedBalances[1].marketValue,
-            };
-          });
-          res.status(200).json(_.merge(accounts, balances));
+      Promise.all(balancesPromises).then((balancesRes) => {
+        const balances = balancesRes.map((acc) => {
+          return {
+            ..._.omit(acc.data.combinedBalances[0], [
+              "buyingPower",
+              "maintenanceExcess",
+              "isRealTime",
+            ]),
+            cashUSD: acc.data.combinedBalances[1].cash,
+            marketValueUSD: acc.data.combinedBalances[1].marketValue,
+          };
         });
-      } catch (e) {
-        console.error(
-          `Error retrieving Accounts and Balances data from Questrade API: ${e.message}`
+        res.status(200).json(_.merge(accounts, balances));
+      });
+    } catch (e) {
+      console.error(`Error retrieving Accounts and Balances data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving data from Questrade API: ${e.message}`
+          )
         );
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving data from Questrade API: ${e.message}`
-            )
-          );
-      }
     }
   });
 
   app.get("/api/posistions/:accountNumber", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const positionsRes = await api.get(`v1/accounts/${req.params.accountNumber}/positions`);
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const positionsRes = await api.get(`v1/accounts/${req.params.accountNumber}/positions`);
 
-        const symbolsRes = await api.get("v1/symbols", {
-          params: {
-            ids: _.join(_.map(positionsRes.data.positions, "symbolId"), ","),
-          },
-        });
+      const symbolsRes = await api.get("v1/symbols", {
+        params: {
+          ids: _.join(_.map(positionsRes.data.positions, "symbolId"), ","),
+        },
+      });
 
-        res.status(200).json(_.merge(positionsRes.data.positions, symbolsRes.data.symbols));
-      } catch (e) {
-        console.error(`Error retrieving positions data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving data from Questrade API: ${e.message}`
-            )
-          );
-      }
+      res.status(200).json(_.merge(positionsRes.data.positions, symbolsRes.data.symbols));
+    } catch (e) {
+      console.error(`Error retrieving positions data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/candles/:symbolId", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const { interval } = req.query;
-        const startDate = formatDateForCandles(
-          new Date(),
-          qtradeConstants.formatCandleDate.START_DATE,
-          interval
-        );
-        const endDate = formatDateForCandles(
-          new Date(),
-          qtradeConstants.formatCandleDate.END_DATE,
-          null
-        );
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const { interval } = req.query;
+      const startDate = formatDateForCandles(
+        new Date(),
+        qtradeConstants.formatCandleDate.START_DATE,
+        interval
+      );
+      const endDate = formatDateForCandles(
+        new Date(),
+        qtradeConstants.formatCandleDate.END_DATE,
+        null
+      );
 
-        const candleRes = await api.get(`v1/markets/candles/${req.params.symbolId}`, {
-          params: {
-            startTime: datefns.formatISO(startDate),
-            endTime: datefns.formatISO(endDate),
-            interval: qtradeConstants.questradeIntervalEnum[interval],
-          },
-        });
-        res.status(200).json(candleRes.data);
-      } catch (e) {
-        console.error(`Error retrieving candles positions data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving data from Questrade API: ${e.message}`
-            )
-          );
-      }
+      const candleRes = await api.get(`v1/markets/candles/${req.params.symbolId}`, {
+        params: {
+          startTime: datefns.formatISO(startDate),
+          endTime: datefns.formatISO(endDate),
+          interval: qtradeConstants.questradeIntervalEnum[interval],
+        },
+      });
+      res.status(200).json(candleRes.data);
+    } catch (e) {
+      console.error(`Error retrieving candles positions data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/symbol/:symbolId", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const symbolRes = await api.get(`v1/symbols/${req.params.symbolId}`);
-        res.status(200).json(symbolRes.data);
-      } catch (e) {
-        console.error(`Error retrieving symbol info data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving symbol info data from Questrade API: ${e.message}`
-            )
-          );
-      }
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const symbolRes = await api.get(`v1/symbols/${req.params.symbolId}`);
+      res.status(200).json(symbolRes.data);
+    } catch (e) {
+      console.error(`Error retrieving symbol info data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving symbol info data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/option/:symbolId", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const optionRes = await api.get(`v1/symbols/${req.params.symbolId}/options`);
-        res.status(200).json(optionRes.data);
-      } catch (e) {
-        console.error(`Error retrieving option info data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving option info data from Questrade API: ${e.message}`
-            )
-          );
-      }
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const optionRes = await api.get(`v1/symbols/${req.params.symbolId}/options`);
+      res.status(200).json(optionRes.data);
+    } catch (e) {
+      console.error(`Error retrieving option info data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving option info data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/symbol-search", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const searchRes = await api.get(`v1/symbols/search`, {
-          params: {
-            prefix: req.query.s,
-          },
-        });
-        res.status(200).json(searchRes.data.symbols);
-      } catch (e) {
-        console.error(`Error retrieving symbol search data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving symbol search data from Questrade API: ${e.message}`
-            )
-          );
-      }
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const searchRes = await api.get(`v1/symbols/search`, {
+        params: {
+          prefix: req.query.s,
+        },
+      });
+      res.status(200).json(searchRes.data.symbols);
+    } catch (e) {
+      console.error(`Error retrieving symbol search data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving symbol search data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/executions/:accountNumber", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const executionsRes = await api.get(`v1/accounts/${req.params.accountNumber}/executions`);
-        res.status(200).json(executionsRes.data.executions);
-      } catch (e) {
-        console.error(`Error retrieving executions data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving executions data from Questrade API: ${e.message}`
-            )
-          );
-      }
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const executionsRes = await api.get(`v1/accounts/${req.params.accountNumber}/executions`);
+      res.status(200).json(executionsRes.data.executions);
+    } catch (e) {
+      console.error(`Error retrieving executions data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving executions data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/orders/:accountNumber", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const ordersRes = await api.get(`v1/accounts/${req.params.accountNumber}/orders`);
-        res.status(200).json(ordersRes.data.orders);
-      } catch (e) {
-        console.error(`Error retrieving orders data from Questrade API: ${e.message}`);
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving orders data from Questrade API: ${e.message}`
-            )
-          );
-      }
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const ordersRes = await api.get(`v1/accounts/${req.params.accountNumber}/orders`);
+      res.status(200).json(ordersRes.data.orders);
+    } catch (e) {
+      console.error(`Error retrieving orders data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving orders data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/stream/orders", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const streamPortURL = await getOrderStreamURL(req, api);
-        const dataToSend = {
-          success: true,
-          questradePortURL: streamPortURL,
-          eAT: req.user.accessToken,
-        };
-        const encObj = CryptoJS.AES.encrypt(
-          JSON.stringify(dataToSend),
-          keys.CRYPTO_SECRET_KEY
-        ).toString();
-        res.status(200).json(encObj);
-      } catch (e) {
-        console.error(
-          `Error retrieving orders streaming port data from Questrade API: ${e.message}`
-        );
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving orders streaming port data from Questrade API: ${e.message}`
-            )
-          );
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const streamPortURL = await getOrderStreamURL(req, api);
+      if (streamPortURL.error) {
+        throw new Error(streamPortURL.e.message);
       }
+
+      const dataToSend = {
+        success: true,
+        questradePortURL: streamPortURL,
+        eAT: req.user.accessToken,
+      };
+      const encObj = CryptoJS.AES.encrypt(
+        JSON.stringify(dataToSend),
+        keys.CRYPTO_SECRET_KEY
+      ).toString();
+      res.status(200).json(encObj);
+    } catch (e) {
+      console.error(`Error retrieving orders streaming port data from Questrade API: ${e.message}`);
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving orders streaming port data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 
   app.get("/api/stream/candle/:symbolId", async (req, res) => {
-    const loginRes = await testLogin(req, res);
-    if (loginRes) {
-      const api = qapi(req.user.apiServer, req.user.accessToken);
-      try {
-        const canldePortURL = await getCandleStreamURL(req, api, req.params.symbolId);
-        const dataToSend = {
-          success: true,
-          questradePortURL: canldePortURL,
-          eAT: req.user.accessToken,
-        };
-
-        const encObj = CryptoJS.AES.encrypt(
-          JSON.stringify(dataToSend),
-          keys.CRYPTO_SECRET_KEY
-        ).toString();
-
-        res.status(200).json(encObj);
-      } catch (e) {
-        console.error(
-          `Error retrieving candles streaming port data from Questrade API: ${e.message}`
-        );
-        res
-          .status(400)
-          .json(
-            new errors.apiErrorMessage(
-              errors.QUESTRADE_API_ERROR,
-              `Error retrieving candles streaming port data from Questrade API: ${e.message}`
-            )
-          );
+    const api = qapi(req.user.apiServer, req.user.accessToken);
+    try {
+      const canldePortURL = await getCandleStreamURL(req, api, req.params.symbolId);
+      if (canldePortURL.error) {
+        throw new Error(canldePortURL.e.message);
       }
+
+      const dataToSend = {
+        success: true,
+        questradePortURL: canldePortURL,
+        eAT: req.user.accessToken,
+      };
+
+      const encObj = CryptoJS.AES.encrypt(
+        JSON.stringify(dataToSend),
+        keys.CRYPTO_SECRET_KEY
+      ).toString();
+
+      res.status(200).json(encObj);
+    } catch (e) {
+      console.error(
+        `Error retrieving candles streaming port data from Questrade API: ${e.message}`
+      );
+      res
+        .status(400)
+        .json(
+          new errors.apiErrorMessage(
+            errors.QUESTRADE_API_ERROR,
+            `Error retrieving candles streaming port data from Questrade API: ${e.message}`
+          )
+        );
     }
   });
 };
 
 // Helper Functions
 const getCandleStreamURL = async (req, api, symbolId) => {
-  const candleStreamPortRes = await api.get(`v1/markets/quotes`, {
-    params: { ids: symbolId, stream: "true", mode: "WebSocket" },
-  });
+  try {
+    const candleStreamPortRes = await api.get(`v1/markets/quotes`, {
+      params: { ids: symbolId, stream: "true", mode: "WebSocket" },
+    });
 
-  return `wss:${req.user.apiServer.slice(6, -1)}:${
-    candleStreamPortRes.data.streamPort
-  }/v1/markets/quotes?ids=${symbolId}&stream=true&mode=WebSocket`;
+    return `wss:${req.user.apiServer.slice(6, -1)}:${
+      candleStreamPortRes.data.streamPort
+    }/v1/markets/quotes?ids=${symbolId}&stream=true&mode=WebSocket`;
+  } catch (e) {
+    console.error(`Error fetching Candle Stream Port: ${e.message}`);
+    return { error: true, e };
+  }
 };
 
 const getOrderStreamURL = async (req, api) => {
-  const ordersStreamPortRes = await api.get("v1/notifications", {
-    params: { stream: "true", mode: "WebSocket" },
-  });
+  try {
+    const ordersStreamPortRes = await api.get("v1/notifications", {
+      params: { stream: "true", mode: "WebSocket" },
+    });
 
-  return `wss:${req.user.apiServer.slice(6, -1)}:${
-    ordersStreamPortRes.data.streamPort
-  }/v1/notifications?stream=true&mode=WebSocket`;
+    return `wss:${req.user.apiServer.slice(6, -1)}:${
+      ordersStreamPortRes.data.streamPort
+    }/v1/notifications?stream=true&mode=WebSocket`;
+  } catch (e) {
+    console.error(`Error fetching Order Stream Port: ${e.message}`);
+    return { error: true, e };
+  }
 };
 
 const formatDateForCandles = (date, startDateOrEndDate, interval) => {
@@ -397,31 +397,55 @@ const getAccessTokenWithRefreshToken = async (req, res) => {
     const newUser = await User.findByIdAndUpdate(
       req.user._id,
       {
-        accessToken: res.data.access_token,
-        refreshToken: res.data.refresh_token,
+        accessToken: CryptoJS.AES.encrypt(
+          res.data.access_token,
+          keys.MONGO_TOKEN_STORE_ENCRYPTION
+        ).toString(),
+        refreshToken: CryptoJS.AES.encrypt(
+          res.data.refresh_token,
+          keys.MONGO_TOKEN_STORE_ENCRYPTION
+        ).toString(),
         accessTokenExpiringAt: datefns.addSeconds(new Date(), 1800),
         apiServer: res.data.api_server,
       },
       { new: true, useFindAndModify: false }
     );
+
+    newUser.accessToken = res.data.access_token;
+    newUser.refreshToken = res.data.refresh_token;
     req.user = newUser;
+    return true;
   } catch (e) {
     console.error(`Error getting access token with refresh token: ${e.message}`);
     res.redirect("/auth/questrade");
+    return false;
+  }
+};
+
+const timerGetAccessTokenWithRefreshToken = async (req, res) => {
+  if (!_refreshExecuted) {
+    _refreshExecuted = true;
+    const result = await getAccessTokenWithRefreshToken(req, res);
+    setTimeout(() => {
+      _refreshExecuted = false;
+    }, 1000);
+    return result ? Promise.resolve(result) : Promise.reject(result);
+  } else {
+    return Promise.reject(undefined);
   }
 };
 
 const testLogin = async (req, res) => {
   try {
     if (datefns.isAfter(new Date(), new Date(req.user.accessTokenExpiringAt))) {
-      await getAccessTokenWithRefreshToken(req, res);
+      await timerGetAccessTokenWithRefreshToken(req, res);
     }
-    return true;
+    return Promise.resolve(true);
   } catch (e) {
-    console.error(`Test Login Error: ${e.message}`);
+    console.error(`Test Login Error: ${e}`);
     res
       .status(400)
       .json(new errors.apiErrorMessage(errors.AUTH_ERROR, `Authentication Error: ${e.message}`));
-    return false;
+    return Promise.reject(e);
   }
 };

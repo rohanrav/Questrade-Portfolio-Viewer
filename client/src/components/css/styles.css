@@ -1,6 +1,6 @@
 body {
   background-color: rgb(24, 24, 24) !important;
-  background-image: url("../config/background.svg") !important;
+  background-image: url("../../config/background.svg") !important;
   color: #fff;
   position: relative;
   background-size: 15%;
@@ -146,4 +146,86 @@ a.item.menu-logo:hover {
 
 section {
   padding-bottom: 5rem;
+}
+
+.ui.form .inline.fields {
+  margin-bottom: 0;
+}
+
+.ui.message {
+  background-color: #eeeeee;
+  box-shadow: none;
+  border-radius: 0;
+  margin-bottom: 4rem;
+  padding-top: 6rem;
+  padding-bottom: 4rem;
+}
+
+.ui.menu > .ui.container > .header.item {
+  font-size: 1.4rem;
+  margin-left: -20px;
+}
+
+.ui.borderless.menu {
+  box-shadow: none;
+  flex-wrap: wrap;
+  border: none;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.ui.mobile.only.grid .ui.menu .ui.vertical.menu {
+  display: none;
+}
+
+.btn-mobile > * {
+  width: 100% !important;
+}
+
+.asset-chart {
+  max-height: 400px !important;
+}
+
+.positions-chart {
+  height: 500px;
+}
+
+.options-dropdown {
+  margin-top: 10px !important;
+  width: 100% !important;
+  border: #484848 solid 0.5px;
+  border-collapse: collapse;
+}
+
+.options-dropdown td {
+  padding: 7.5px 5px 7.5px 5px !important;
+  border: #484848 solid 0.5px;
+  background-color: #333;
+}
+
+.options-dropdown-head th {
+  padding: 15px 5px 15px 5px !important;
+  border: #484848 solid 0.5px;
+}
+
+.options-dropdown-head {
+  text-align: justify !important;
+  background-color: rgba(43, 43, 43, 1) !important;
+}
+
+.message-query {
+  padding-top: 21px !important;
+  padding-bottom: 21px !important;
+}
+
+.posistions-head {
+  height: 500px !important;
+}
+
+.ui.secondary.inverted.menu.page-menu {
+  margin-bottom: 1.5rem;
+}
+
+.ui.padded.grid.mobile.only {
+  margin-bottom: 5.5rem !important;
 }

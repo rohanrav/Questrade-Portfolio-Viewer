@@ -7,7 +7,10 @@ import AccountDetail from "./AccountDetail";
 import AccountError from "./AccountError";
 import StockDetail from "./StockDetail";
 import Orders from "./Orders";
-import "./styles.css";
+import PageNotFound from "./PageNotFound";
+import "semantic-ui-css/semantic.min.css";
+import "./css/styles.css";
+import "./css/queries.css";
 
 const App = () => {
   return (
@@ -22,6 +25,7 @@ const App = () => {
             <Route path="/accounts/:accountNumber" exact component={AccountDetail} />
             <Route path="/stock/:id" exact component={StockDetail} />
             <Route path="/orders/:accountNumber" exact component={Orders} />
+            <Route component={PageNotFound} />
           </Switch>
         </div>
       </Router>

@@ -1,5 +1,5 @@
 import React from "react";
-import "./login.css";
+import "./css/login.css";
 
 const Footer = () => {
   return (
@@ -8,7 +8,16 @@ const Footer = () => {
         className="ui inverted vertical segment"
         style={{ position: "absolute", bottom: "0" }}
       >
-        Made by{" "}
+        <a
+          style={{ cursor: "pointer" }}
+          href="https://github.com/rohanrav/questrade_portfolio_view"
+          target="_blank"
+          rel="noreferrer"
+        >
+          <i className="github icon"></i>
+          {"Questrade Portfolio Viewer"}
+        </a>
+        {" | "}Made by{" "}
         <a
           style={{ cursor: "pointer" }}
           href="https://www.linkedin.com/in/rohanrav/"
@@ -17,16 +26,6 @@ const Footer = () => {
         >
           Rohan Ravindran
         </a>
-        {" | Style inspired by "}
-        <a
-          style={{ cursor: "pointer" }}
-          href="https://github.com/semantic-ui-forest"
-          target="_blank"
-          rel="noreferrer"
-        >
-          @Semantic-UI-Forest
-        </a>
-        .
       </footer>
     </div>
   );

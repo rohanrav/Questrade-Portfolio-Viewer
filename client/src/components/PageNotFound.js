@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import Header from "./Header";
 import "./css/login.css";
 
-const AccountError = () => {
+const PageNotFound = () => {
   return (
     <>
       <div className="ui container">
@@ -12,20 +12,9 @@ const AccountError = () => {
       <div className="ui inverted vertical center aligned segment">
         <div className="ui content container">
           <h1 className="ui inverted header">
-            Uh oh! There's been an <strong style={{ color: "#ea4335" }}>error!</strong>
+            <strong style={{ color: "#ea4335" }}>404</strong> Page Not Found!
           </h1>
-          <p>
-            An error has occured on Questrade's end. Please log in again to resolve the error and{" "}
-            <a
-              style={{ cursor: "pointer", color: "#fff" }}
-              href="mailto:r8ravind@uwaterloo.ca?subject=Questrade%20Portfolio%20Viewer%20Bug%2FInquiry"
-              target="_blank"
-              rel="noreferrer"
-            >
-              contact us
-            </a>{" "}
-            if the error persists.
-          </p>
+          <p>This web page does not exist! This is not the page you are looking for :)</p>
           <Link to="/" className="btn-log-in ui huge button">
             Home
           </Link>
@@ -58,4 +47,4 @@ const AccountError = () => {
   );
 };
 
-export default AccountError;
+export default PageNotFound;

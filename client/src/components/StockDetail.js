@@ -1,7 +1,7 @@
 import React from "react";
 import { connect } from "react-redux";
 import { Link } from "react-router-dom";
-import { buttonTypes, tickCountModImport } from "../charts/theme";
+import { buttonTypes, tickCountModImport as tickCountModImportUnFiltered } from "../charts/theme";
 import { fetchCandles, fetchSymbolInfoFromId, fetchOptionsData } from "../actions";
 import { ResponsiveLine } from "@nivo/line";
 import { area } from "d3-shape";
@@ -17,12 +17,18 @@ import keys from "../config/keys";
 import CryptoJS from "crypto-js";
 import Header from "./Header";
 import Footer from "./Footer";
+import _ from "lodash";
 
 let currentButton = "oneDay";
 let tickCount = 0;
-let tickCountMod = tickCountModImport[currentButton];
 let lineColor = "#fff";
 let fillColor = "rgba(255, 255, 255, 0.2)";
+
+const tickCountModImport =
+  window.innerWidth <= 414
+    ? _.mapValues(tickCountModImportUnFiltered, (o) => o * 2)
+    : tickCountModImportUnFiltered;
+let tickCountMod = tickCountModImport[currentButton];
 
 const StockDetail = (props) => {
   const buttonRefs = {};
@@ -191,7 +197,7 @@ const StockDetail = (props) => {
             return;
           }
 
-          if (date.getHours() > 16 || (date.getHours() === 16 && date.getMinutes() > 0)) {
+          if (date.getHours() > 16 || (date.getHours() === 16 && date.getMinutes() > 30)) {
             return;
           }
         }
@@ -446,8 +452,8 @@ const StockDetail = (props) => {
 
     return (
       <div style={{ height: "400px", overflowY: "scroll", display: "block" }}>
-        <table className="ui celled inverted selectable table">
-          <thead>
+        <table className="ui celled inverted selectable options-dropdown">
+          <thead className="options-dropdown-head">
             <tr>
               <th>Strike Price</th>
               <th>Expiry Date</th>
@@ -456,7 +462,7 @@ const StockDetail = (props) => {
               <th>Put Option</th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="options-dropdown-body">
             {res[0].chainPerRoot[0].chainPerStrikePrice.map((opt) => {
               return (
                 <tr key={opt.callSymbolId}>
@@ -505,7 +511,7 @@ const StockDetail = (props) => {
             {getEntityTitle(props.symbolInfo)}
           </h3>
           <div
-            className="ui attached segment"
+            className="ui attached segment stock-chart"
             style={{
               border: "none",
               background: "#272727",
@@ -513,7 +519,7 @@ const StockDetail = (props) => {
               borderBottomRightRadius: "5px",
             }}
           >
-            <div className="ui grid">
+            <div className="ui stackable two column grid">
               <div className="row">
                 <div className="ten wide column">
                   <div style={{ height: "500px" }}>{renderChart()}</div>

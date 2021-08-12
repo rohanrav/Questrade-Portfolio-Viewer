@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
 import { connect } from "react-redux";
-import { signOut } from "../actions";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { fetchAccountsAndBalances } from "../actions";
+import { Button, Form, Grid, Icon, Menu } from "semantic-ui-react";
+import { fetchAccountsAndBalances, signOut } from "../actions";
 import history from "../history";
 
 const Header = ({ signOut, fetchAccountsAndBalances, accounts, isLoggedIn }) => {
@@ -11,7 +11,11 @@ const Header = ({ signOut, fetchAccountsAndBalances, accounts, isLoggedIn }) => 
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [dropdownMenuStyle, setDropdownMenuStyle] = useState({
+    display: "none",
+  });
   const ref = useRef();
+  const mobileWidth = window.innerWidth <= 414 ? true : false;
 
   const checkUnderline = () => {
     if (
@@ -71,6 +75,17 @@ const Header = ({ signOut, fetchAccountsAndBalances, accounts, isLoggedIn }) => 
     }
   }, [term]);
 
+  const handleToggleDropdownMenu = () => {
+    let newState = dropdownMenuStyle;
+    if (newState.display === "none") {
+      newState = { display: "flex" };
+    } else {
+      newState = { display: "none" };
+    }
+
+    setDropdownMenuStyle(newState);
+  };
+
   const renderedResults = () => {
     const filteredResults = results.filter((res) => res.isTradable && res.isQuotable);
     return filteredResults.map((item) => (
@@ -103,61 +118,138 @@ const Header = ({ signOut, fetchAccountsAndBalances, accounts, isLoggedIn }) => 
   const renderHeader = () => {
     const underline = checkUnderline();
     return (
-      <div>
-        <div className="ui secondary inverted menu page-menu">
-          <Link className="menu-logo item" to="/">
-            Questrade Portfolio Viewer
-          </Link>
-          {isLoggedIn && (
-            <>
-              <Link className={`${underline === "accounts" ? "active" : null} item`} to="/accounts">
-                Accounts
+      <>
+        <div>
+          {!mobileWidth && (
+            <div className="ui secondary inverted menu page-menu">
+              <Link className="menu-logo item" to="/">
+                Questrade Portfolio Viewer
               </Link>
-              <Link
-                className={`${underline === "orders" ? "active" : null} item`}
-                to={`/orders/${getAccountsForOrdersLink()}`}
-              >
-                Orders
-              </Link>
-              <div className="right menu">
-                <div className="item" style={{ marginRight: "0" }}>
-                  <div className={`ui icon ${loading ? "loading" : ""} input`}>
-                    <input
-                      type="text"
-                      placeholder="Search Symbols..."
-                      className="input"
-                      value={term}
-                      onChange={(e) => setTerm(e.target.value)}
-                      onClick={() => setOpen(true)}
-                    />
-                    <i className="search link icon"></i>
-                  </div>
-                  {open && (
-                    <div ref={ref} style={{ position: "absolute" }}>
-                      <div className={`results`}>
-                        <div
-                          className="ui celled list"
-                          style={{
-                            position: "absolute",
-                            top: "0",
-                            zIndex: "99999",
-                            marginTop: "16.5px",
-                          }}
-                        >
-                          {renderedResults()}
-                        </div>
+              {isLoggedIn && (
+                <>
+                  <Link
+                    className={`${underline === "accounts" ? "active" : null} item`}
+                    to="/accounts"
+                  >
+                    Accounts
+                  </Link>
+                  <Link
+                    className={`${underline === "orders" ? "active" : null} item`}
+                    to={`/orders/${getAccountsForOrdersLink()}`}
+                  >
+                    Orders
+                  </Link>
+                  <div className="right menu">
+                    <div className="item" style={{ marginRight: "0" }}>
+                      <div className={`ui icon ${loading ? "loading" : ""} input`}>
+                        <input
+                          type="text"
+                          placeholder="Search Symbols..."
+                          className="input"
+                          value={term}
+                          onChange={(e) => setTerm(e.target.value)}
+                          onClick={() => setOpen(true)}
+                        />
+                        <i className="search link icon"></i>
                       </div>
+                      {open && (
+                        <div ref={ref} style={{ position: "absolute" }}>
+                          <div className={`results`}>
+                            <div
+                              className="ui celled list"
+                              style={{
+                                position: "absolute",
+                                top: "0",
+                                zIndex: "99999",
+                                marginTop: "16.5px",
+                              }}
+                            >
+                              {renderedResults()}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
-                  )}
-                </div>
-                <a className="btn-log-out active item" onClick={() => signOut(false)} href="#">
-                  Log Out
-                </a>
-              </div>
-            </>
+                    <a className="btn-log-out active item" onClick={() => signOut(false)} href="#">
+                      Log Out
+                    </a>
+                  </div>
+                </>
+              )}
+            </div>
           )}
         </div>
-      </div>
+        {mobileWidth && (
+          <Grid padded className="mobile only">
+            <Menu borderless fluid inverted fixed="top" size="huge">
+              <Menu.Item header onClick={() => history.push("/")}>
+                Questrade Portfolio Viewer
+              </Menu.Item>
+              {isLoggedIn && (
+                <>
+                  <Menu.Menu position="right">
+                    <Menu.Item>
+                      <Button basic inverted icon toggle onClick={handleToggleDropdownMenu}>
+                        <Icon name="content" />
+                      </Button>
+                    </Menu.Item>
+                  </Menu.Menu>
+                  <Menu borderless fluid inverted vertical style={dropdownMenuStyle}>
+                    <Menu.Item>
+                      <Form>
+                        <Form.Button
+                          content="Accounts"
+                          color="grey"
+                          className="btn-mobile"
+                          onClick={() => history.push("/accounts")}
+                        />
+                        <Form.Button
+                          content="Orders"
+                          color="grey"
+                          className="btn-mobile"
+                          onClick={() => history.push(`/orders/${getAccountsForOrdersLink()}`)}
+                        />
+                        <Form.Button
+                          content="Log Out"
+                          color="red"
+                          className="btn-mobile"
+                          onClick={() => signOut(false)}
+                        />
+                        <Form.Input
+                          placeholder="Search Symbols..."
+                          type="text"
+                          className="input"
+                          value={term}
+                          onChange={(e) => setTerm(e.target.value)}
+                          onClick={() => setOpen(true)}
+                        />
+                        {open && (
+                          <div ref={ref} style={{ position: "absolute" }}>
+                            <div className={`results`}>
+                              <div
+                                className="ui celled list"
+                                style={{
+                                  position: "absolute",
+                                  top: "0",
+                                  zIndex: "99999",
+                                  marginTop: "-15px",
+                                  width: "350px",
+                                }}
+                              >
+                                {renderedResults()}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </Form>
+                    </Menu.Item>
+                  </Menu>
+                </>
+              )}
+            </Menu>
+          </Grid>
+        )}
+      </>
     );
   };
 

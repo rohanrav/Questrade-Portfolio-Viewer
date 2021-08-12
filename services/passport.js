@@ -1,16 +1,17 @@
 const passport = require("passport");
 const OAuth2Strategy = require("passport-oauth2").Strategy;
-const qapi = require("../api/questradeAPI.js");
 const mongoose = require("mongoose");
 const addSeconds = require("date-fns/addSeconds");
-const keys = require("../config/keys.js");
 const CryptoJS = require("crypto-js");
+
+const qapi = require("../api/questradeAPI.js");
+const keys = require("../config/keys.js");
+
+const User = mongoose.model("users");
 
 const redirectURL = `${keys.BASE_URL}/auth/questrade/callback`;
 const authURL = `https://login.questrade.com/oauth2/authorize?client_id=${keys.REACT_APP_CLIENT_ID}&response_type=code&redirect_uri=${redirectURL}`;
 const tokenURL = `https://login.questrade.com/oauth2/token?client_id=${keys.REACT_APP_CLIENT_ID}&grant_type=authorization_code&redirect_uri=${keys.BASE_URL}`;
-
-const User = mongoose.model("users");
 
 passport.serializeUser((user, done) => {
   done(null, user.id);

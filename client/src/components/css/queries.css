@@ -1,0 +1,93 @@
+@media only screen and (max-width: 1199px) {
+  .container {
+    width: 933px !important;
+  }
+}
+
+@media only screen and (max-width: 768px) {
+  .ui.content.container {
+    padding-left: 30px;
+    padding-right: 30px;
+    bottom: 25%;
+  }
+
+  .ui.inverted.vertical.segment {
+    padding: 0 30px;
+  }
+
+  .container {
+    width: 350px;
+  }
+
+  .ui.inverted.vertical.segment {
+    left: 0;
+  }
+
+  .message-query {
+    padding: 30px 21px !important;
+  }
+
+  .accounts-table {
+    text-align: center;
+  }
+
+  .accounts-table td {
+    margin-bottom: 10px !important;
+  }
+
+  .asset-chart {
+    height: 428px !important;
+  }
+
+  .account-asset-mix {
+    text-align: center !important;
+  }
+
+  .asset-table {
+    text-align: center !important;
+  }
+
+  .positions-chart {
+    height: 500px;
+  }
+
+  .posistions-head {
+    text-align: center !important;
+  }
+
+  .options-dropdown {
+    text-align: center !important;
+  }
+
+  .options-dropdown td {
+    padding: 15px 5px 15px 5px !important;
+  }
+
+  .stock-chart {
+    padding-left: 0px !important;
+    padding-right: 0px !important;
+  }
+
+  .account-asset-mix > div.eight.wide.column {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  .ui.container {
+    display: block;
+    max-width: 100% !important;
+    width: 723px !important;
+  }
+}
+
+@media only screen and (max-width: 414px) {
+  .positions-chart {
+    height: 400px;
+  }
+
+  .ui.container {
+    width: auto !important;
+    margin-left: 1em !important;
+    margin-right: 1em !important;
+  }
+}
