@@ -24,16 +24,16 @@ This project was built using React + Redux on the frontend and Node + MongoDB + 
 
 #### Accounts Page
 
-![](https://github.com/rohanrav/questrade_portfolio_view/blob/socket-io-test/screenshots/AccountsPage.png)
+![](https://github.com/rohanrav/questrade_portfolio_view/blob/main/screenshots/AccountsPage.png)
 
 #### Account Details Page
 
-![](https://github.com/rohanrav/questrade_portfolio_view/blob/socket-io-test/screenshots/AccountDetail.png)
+![](https://github.com/rohanrav/questrade_portfolio_view/blob/main/screenshots/AccountDetail.png)
 
 #### Stock Detail Page
 
-![](https://github.com/rohanrav/questrade_portfolio_view/blob/socket-io-test/screenshots/StockDetailPage.png)
+![](https://github.com/rohanrav/questrade_portfolio_view/blob/main/screenshots/StockDetailPage.png)
 
 #### Orders Page
 
-![](https://github.com/rohanrav/questrade_portfolio_view/blob/socket-io-test/screenshots/OrdersPage.png)
+![](https://github.com/rohanrav/questrade_portfolio_view/blob/main/screenshots/OrdersPage.png)
