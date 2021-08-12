@@ -146,6 +146,7 @@ a.item.menu-logo:hover {
 
 section {
   padding-bottom: 5rem;
+  overflow-x: hidden !important;
 }
 
 .ui.form .inline.fields {
