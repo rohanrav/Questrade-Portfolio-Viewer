@@ -423,11 +423,11 @@ const getAccessTokenWithRefreshToken = async (req, res) => {
 };
 
 const timerGetAccessTokenWithRefreshToken = async (req, res) => {
-  if (!_refreshExecuted) {
-    _refreshExecuted = true;
+  if (!req.user._refreshExecuted) {
+    req.user._refreshExecuted = true;
     const result = await getAccessTokenWithRefreshToken(req, res);
     setTimeout(() => {
-      _refreshExecuted = false;
+      req.user._refreshExecuted = false;
     }, 1000);
     return result ? Promise.resolve(result) : Promise.reject(result);
   } else {
