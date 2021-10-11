@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Router, Route, Switch } from "react-router-dom";
+import axios from "axios";
 import history from "../history";
 import Login from "./Login";
 import Accounts from "./Accounts";
@@ -13,6 +14,16 @@ import "./css/styles.css";
 import "./css/queries.css";
 
 const App = () => {
+  useEffect(() => {
+    window.addEventListener("load", onWindowLoad);
+    window.addEventListener("beforeunload", onWindowUnload);
+
+    return () => {
+      window.removeEventListener("load", onWindowLoad);
+      window.removeEventListener("beforeunload", onWindowUnload);
+    };
+  }, []);
+
   return (
     <>
       <div className="header-marker"></div>
@@ -31,6 +42,23 @@ const App = () => {
       </Router>
     </>
   );
+};
+
+const onWindowLoad = async () => {
+  try {
+    await axios.get(`/api/set-refresh-token-interval`);
+  } catch (e) {
+    console.error("Error fetching /api/set-refresh-token-interval/ from API: ", e.message);
+  }
+};
+
+const onWindowUnload = async (e) => {
+  e.preventDefault();
+  try {
+    await axios.get(`/api/cancel-refresh-token-interval`);
+  } catch (e) {
+    console.error("Error fetching /api/cancel-refresh-token-interval/ from API: ", e.message);
+  }
 };
 
 export default App;

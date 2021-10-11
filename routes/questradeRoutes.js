@@ -1,6 +1,4 @@
 const _ = require("lodash");
-const axios = require("axios");
-const mongoose = require("mongoose");
 const datefns = require("date-fns");
 var CryptoJS = require("crypto-js");
 
@@ -10,28 +8,7 @@ const errors = require("../constants/errors.js");
 const keys = require("../config/keys.js");
 const qtradeConstants = require("../constants/questrade.js");
 
-const User = mongoose.model("users");
-
-let _refreshExecuted = false;
-
-axios.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.log(`Axios Error: ${error.message}`);
-    throw error;
-  }
-);
-
 module.exports = (app) => {
-  app.use((req, res, next) => {
-    testLogin(req, res)
-      .then(() => next())
-      .catch((e) => {
-        console.error(`testLogin Server Error: ${e}`);
-        next();
-      });
-  });
-
   app.get("/api/exchange-rate", async (req, res) => {
     try {
       const rateRes = await currencyConv.get("api/v7/convert", {
@@ -382,67 +359,4 @@ const formatDateForCandles = (date, startDateOrEndDate, interval) => {
     }
   }
   return date;
-};
-
-const getAccessTokenWithRefreshToken = async (req, res) => {
-  try {
-    console.log("Fetching Access Token With Refresh Token");
-    const res = await axios.post("https://login.questrade.com/oauth2/token", null, {
-      params: {
-        grant_type: "refresh_token",
-        refresh_token: req.user.refreshToken,
-      },
-    });
-
-    const newUser = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-        accessToken: CryptoJS.AES.encrypt(
-          res.data.access_token,
-          keys.MONGO_TOKEN_STORE_ENCRYPTION
-        ).toString(),
-        refreshToken: CryptoJS.AES.encrypt(
-          res.data.refresh_token,
-          keys.MONGO_TOKEN_STORE_ENCRYPTION
-        ).toString(),
-        accessTokenExpiringAt: datefns.addSeconds(new Date(), 1800),
-        apiServer: res.data.api_server,
-      },
-      { new: true, useFindAndModify: false }
-    );
-
-    newUser.accessToken = res.data.access_token;
-    newUser.refreshToken = res.data.refresh_token;
-    req.user = newUser;
-    return true;
-  } catch (e) {
-    console.error(`Error getting access token with refresh token: ${e.message}`);
-    res.redirect("/auth/questrade");
-    return false;
-  }
-};
-
-const timerGetAccessTokenWithRefreshToken = async (req, res) => {
-  if (!req.user._refreshExecuted) {
-    req.user._refreshExecuted = true;
-    const result = await getAccessTokenWithRefreshToken(req, res);
-    setTimeout(() => {
-      req.user._refreshExecuted = false;
-    }, 1000);
-    return result ? Promise.resolve(result) : Promise.reject(result);
-  } else {
-    return Promise.reject(undefined);
-  }
-};
-
-const testLogin = async (req, res) => {
-  try {
-    if (datefns.isAfter(new Date(), new Date(req.user.accessTokenExpiringAt))) {
-      await timerGetAccessTokenWithRefreshToken(req, res);
-    }
-    return Promise.resolve(true);
-  } catch (e) {
-    console.error(`Test Login Error: ${e}`);
-    return Promise.reject(e);
-  }
 };

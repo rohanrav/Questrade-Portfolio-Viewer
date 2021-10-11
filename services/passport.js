@@ -56,7 +56,10 @@ const strategy = new OAuth2Strategy(
         ).toString();
         existingUser.accessTokenExpiringAt = addSeconds(new Date(), 1800);
         existingUser.apiServer = params.api_server;
+        existingUser.refreshTokenTimeoutID = null;
         await existingUser.save();
+
+        existingUser.refreshToken = refreshToken;
         cb(null, existingUser);
       } else {
         const newUser = await new User({
@@ -71,7 +74,10 @@ const strategy = new OAuth2Strategy(
           ).toString(),
           accessTokenExpiringAt: addSeconds(new Date(), 1800),
           apiServer: params.api_server,
+          refreshTokenTimeoutID: null,
         }).save();
+
+        newUser.refreshToken = refreshToken;
         cb(null, newUser);
       }
     } catch (e) {

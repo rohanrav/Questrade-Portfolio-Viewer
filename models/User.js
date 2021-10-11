@@ -7,6 +7,7 @@ const userSchema = new Schema({
   refreshToken: String,
   accessTokenExpiringAt: Date,
   apiServer: String,
+  refreshTokenTimeoutID: Number,
 });
 
 mongoose.model("users", userSchema);
