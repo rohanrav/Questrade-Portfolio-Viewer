@@ -10,8 +10,12 @@ const keys = require("../config/keys.js");
 const User = mongoose.model("users");
 
 const redirectURL = `${keys.BASE_URL}/auth/questrade/callback`;
-const authURL = `https://login.questrade.com/oauth2/authorize?client_id=${keys.REACT_APP_CLIENT_ID}&response_type=code&redirect_uri=${redirectURL}`;
-const tokenURL = `https://login.questrade.com/oauth2/token?client_id=${keys.REACT_APP_CLIENT_ID}&grant_type=authorization_code&redirect_uri=${keys.BASE_URL}`;
+const authURL =
+  `https://login.questrade.com/oauth2/authorize?client_id=${keys.REACT_APP_CLIENT_ID}` +
+  `&response_type=code&redirect_uri=${redirectURL}`;
+const tokenURL =
+  `https://login.questrade.com/oauth2/token?client_id=${keys.REACT_APP_CLIENT_ID}` +
+  `&grant_type=authorization_code&redirect_uri=${keys.BASE_URL}`;
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
@@ -19,14 +23,8 @@ passport.serializeUser((user, done) => {
 
 passport.deserializeUser(async (id, done) => {
   const user = await User.findById(id);
-  user.accessToken = CryptoJS.AES.decrypt(
-    user.accessToken,
-    keys.MONGO_TOKEN_STORE_ENCRYPTION
-  ).toString(CryptoJS.enc.Utf8);
-  user.refreshToken = CryptoJS.AES.decrypt(
-    user.refreshToken,
-    keys.MONGO_TOKEN_STORE_ENCRYPTION
-  ).toString(CryptoJS.enc.Utf8);
+  user.accessToken = decryptString(user.accessToken);
+  user.refreshToken = decryptString(user.refreshToken);
   done(null, user);
 });
 
@@ -46,14 +44,8 @@ const strategy = new OAuth2Strategy(
 
       const existingUser = await User.findOne({ questradeID: userId });
       if (existingUser) {
-        existingUser.accessToken = CryptoJS.AES.encrypt(
-          accessToken,
-          keys.MONGO_TOKEN_STORE_ENCRYPTION
-        ).toString();
-        existingUser.refreshToken = CryptoJS.AES.encrypt(
-          refreshToken,
-          keys.MONGO_TOKEN_STORE_ENCRYPTION
-        ).toString();
+        existingUser.accessToken = encryptString(accessToken);
+        existingUser.refreshToken = encryptString(refreshToken);
         existingUser.accessTokenExpiringAt = addSeconds(new Date(), 1800);
         existingUser.apiServer = params.api_server;
         existingUser.refreshTokenTimeoutID = null;
@@ -64,14 +56,8 @@ const strategy = new OAuth2Strategy(
       } else {
         const newUser = await new User({
           questradeID: userId,
-          accessToken: CryptoJS.AES.encrypt(
-            accessToken,
-            keys.MONGO_TOKEN_STORE_ENCRYPTION
-          ).toString(),
-          refreshToken: CryptoJS.AES.encrypt(
-            refreshToken,
-            keys.MONGO_TOKEN_STORE_ENCRYPTION
-          ).toString(),
+          accessToken: encryptString(accessToken),
+          refreshToken: encryptString(refreshToken),
           accessTokenExpiringAt: addSeconds(new Date(), 1800),
           apiServer: params.api_server,
           refreshTokenTimeoutID: null,
@@ -86,5 +72,15 @@ const strategy = new OAuth2Strategy(
     }
   }
 );
+
+const encryptString = (toBeEncrypted) => {
+  return CryptoJS.AES.encrypt(toBeEncrypted, keys.MONGO_TOKEN_STORE_ENCRYPTION).toString();
+};
+
+const decryptString = (toBeDecrypted) => {
+  return CryptoJS.AES.decrypt(toBeDecrypted, keys.MONGO_TOKEN_STORE_ENCRYPTION).toString(
+    CryptoJS.enc.Utf8
+  );
+};
 
 passport.use(strategy);
